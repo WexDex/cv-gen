@@ -26,7 +26,7 @@ export function EducationSection({
         <article
           key={`${item.institution}-${index}`}
           className={cn(
-            "pb-2 border-b last:border-none",
+            "cv-print-subblock pb-2 border-b last:border-none",
             display === "compact" && "pb-1",
             theme.dividerClassName,
           )}

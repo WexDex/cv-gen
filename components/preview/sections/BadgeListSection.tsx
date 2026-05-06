@@ -31,7 +31,9 @@ export function BadgeListSection({
       <SectionShell title={title} theme={theme} blockStyle={blockStyle}>
         <ul className="list-disc pl-4 text-xs space-y-1">
           {items.map((item) => (
-            <li key={item}>{item}</li>
+            <li key={item} className="cv-print-subblock">
+              {item}
+            </li>
           ))}
         </ul>
       </SectionShell>

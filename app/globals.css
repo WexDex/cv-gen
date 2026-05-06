@@ -3,6 +3,11 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /*
+   * Virtual A4 band for on-screen preview (snap + blue lines). Slightly less than 297mm so
+   * bands track browser print fragmentation; too much subtract → too many rows highlighted vs export.
+   */
+  --cv-a4-band-height: calc(297mm - 12px);
 }
 
 @theme inline {
@@ -71,6 +76,54 @@ body {
   background: linear-gradient(180deg, #71717a 0%, #52525b 100%);
 }
 
+/* Hidden probe: must match --cv-a4-band-height (used by useA4PreviewPageSnap). */
+.cv-a4-band-measure {
+  position: absolute;
+  visibility: hidden;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: var(--cv-a4-band-height);
+  pointer-events: none;
+}
+
+/* Screen-only A4 page guide inside resume preview (hidden when printing). */
+.cv-a4-guide-overlay {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  box-sizing: border-box;
+  border: 1px dashed rgba(59, 130, 246, 0.4);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--cv-a4-band-height) - 1px),
+    rgba(59, 130, 246, 0.2) calc(var(--cv-a4-band-height) - 1px),
+    rgba(59, 130, 246, 0.2) var(--cv-a4-band-height)
+  );
+}
+
+/* Virtual page overlap: snapped atoms, straddled by A4 line, or whole layout block wrapper. */
+@media screen {
+  #print-root [data-cv-preview-snap],
+  #print-root [data-cv-preview-straddle],
+  #print-root [data-cv-preview-snap-group] {
+    border-radius: 4px;
+    animation: cv-preview-snap-pulse 1.75s ease-in-out infinite;
+  }
+}
+
+@keyframes cv-preview-snap-pulse {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 2px rgba(239, 68, 68, 0.38), inset 0 0 20px rgba(239, 68, 68, 0.06);
+  }
+  50% {
+    box-shadow: inset 0 0 0 2px rgba(239, 68, 68, 0.72), inset 0 0 28px rgba(239, 68, 68, 0.14);
+  }
+}
+
 @keyframes cv-project-slide {
   from {
     opacity: 0;
@@ -88,8 +141,42 @@ body {
 }
 
 @media print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
   body {
     background: #fff !important;
+    /* Root layout uses flex; flex + print fragmentation often clips multi-page output */
+    display: block !important;
+  }
+
+  main {
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Builder chrome: remove from layout so #print-root isn’t pushed down the page */
+  .cv-print-hide {
+    display: none !important;
+  }
+
+  .cv-print-preview-host {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .cv-builder-grid {
+    display: block !important;
   }
 
   body * {
@@ -102,11 +189,80 @@ body {
   }
 
   #print-root {
-    position: absolute;
-    left: 0;
-    top: 0;
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
     width: 210mm;
-    min-height: 297mm;
-    margin: 0;
+    max-width: 100%;
+    min-height: auto !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    padding: 0;
+    overflow: visible !important;
+    box-sizing: border-box;
+    box-shadow: none !important;
+    border: none !important;
+    break-inside: auto;
+    page-break-inside: auto;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .cv-resume-sheet-inner {
+    min-height: auto !important;
+    height: auto !important;
+    page-break-inside: auto;
+    break-inside: auto;
+    /* Default grid stretch ties both columns to one tall row; blocks pagination */
+    align-items: start !important;
+    align-content: start !important;
+    grid-auto-rows: auto !important;
+  }
+
+  .cv-resume-sheet-inner > * {
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  #print-root * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .cv-print-allow-break {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  /* Prefer keeping headings with content; keep resume “atoms” off page edges */
+  .cv-print-section > h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .cv-print-subblock,
+  .cv-print-header {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .cv-a4-guide-overlay {
+    display: none !important;
+  }
+
+  /* Preview-only snap / guides must not affect printed/PDF output */
+  [data-cv-preview-snap] {
+    margin-top: 0 !important;
+  }
+
+  [data-cv-preview-snap],
+  [data-cv-preview-straddle],
+  [data-cv-preview-snap-group] {
+    box-shadow: none !important;
+    animation: none !important;
   }
 }

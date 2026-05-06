@@ -371,25 +371,29 @@ export const useResumeStore = create<ResumeStore>()(
 
       setResumeFromJSON: (resume) => {
         set((state) => {
+          const importedId = createId();
           const normalizedResume: Resume = {
             ...resume,
+            id: importedId,
+            meta: {
+              ...resume.meta,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            },
             templateVariant: resume.templateVariant ?? (resume.templateId === "webdev" ? "dark" : "light"),
             layout: {
               ...resume.layout,
               sections: resume.layout.sections.map((section) => ({
                 ...section,
+                id: createId(),
                 dataSlice: section.dataSlice ?? { kind: "all" },
               })),
             },
           };
-          const exists = state.resumes.some((item) => item.id === resume.id);
-          const next = exists
-            ? state.resumes.map((item) => (item.id === resume.id ? touch(normalizedResume) : item))
-            : [touch(normalizedResume), ...state.resumes];
 
           return {
-            resumes: next,
-            activeId: resume.id,
+            resumes: [touch(normalizedResume), ...state.resumes],
+            activeId: importedId,
           };
         });
       },
@@ -397,28 +401,19 @@ export const useResumeStore = create<ResumeStore>()(
     {
       name: "cv-gen:store:v1",
       storage: createJSONStorage(() => localStorage),
-      version: 2,
-      migrate: (persistedState, version) => {
+      version: 3,
+      migrate: (persistedState, oldVersion) => {
+        if (oldVersion < 3) {
+          const resume = createDefaultResume();
+          return {
+            resumes: [resume],
+            activeId: resume.id,
+          };
+        }
+
         const state = persistedState as PersistedResumeStore | undefined;
         if (!state?.resumes) return persistedState as ResumeStore;
-        if (version >= 2) return persistedState as ResumeStore;
-
-        const migrated: PersistedResumeStore = {
-          ...state,
-          resumes: state.resumes.map((resume) => ({
-            ...resume,
-            templateVariant: resume.templateId === "webdev" ? "dark" : "light",
-            layout: {
-              ...resume.layout,
-              sections: resume.layout.sections.map((section) => ({
-                ...section,
-                dataSlice: section.dataSlice ?? { kind: "all" },
-              })),
-            },
-          })),
-        };
-
-        return migrated as ResumeStore;
+        return persistedState as ResumeStore;
       },
     },
   ),

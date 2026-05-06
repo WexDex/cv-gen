@@ -1,0 +1,328 @@
+{
+  "id": "d7cd5704-59b3-4350-aa26-4a18d06a4716",
+  "meta": {
+    "name": "ZENDOUH Abdelhamid CV",
+    "createdAt": 1778099372357,
+    "updatedAt": 1778101365100
+  },
+  "templateId": "webdev",
+  "templateVariant": "light",
+  "layout": {
+    "columns": "2col-left-sidebar",
+    "sidebarWidthPct": 32,
+    "sections": [
+      {
+        "id": "788dd09a-d20c-49ec-a4ca-a2640c127e24",
+        "type": "personalInfo",
+        "column": "left",
+        "order": 0,
+        "visible": true,
+        "params": {
+          "showPhoto": false,
+          "photoSize": 96
+        },
+        "dataSlice": {
+          "kind": "all"
+        },
+        "style": {
+          "density": "normal",
+          "fontStyle": "default",
+          "rounded": false,
+          "border": false
+        }
+      },
+      {
+        "id": "aae6adb8-46dd-48f2-a231-55ab84078781",
+        "type": "summary",
+        "column": "left",
+        "order": 1,
+        "visible": true,
+        "display": "plain",
+        "style": {
+          "background": "#0f172a14",
+          "rounded": true,
+          "padding": "md",
+          "fontStyle": "default",
+          "border": true
+        },
+        "dataSlice": {
+          "kind": "all"
+        }
+      },
+      {
+        "id": "e9b9d454-3610-4984-bc05-81fa4782bce6",
+        "type": "programmingLanguages",
+        "column": "left",
+        "order": 2,
+        "visible": true,
+        "title": "Programming Languages",
+        "display": "chips",
+        "dataSlice": {
+          "kind": "all"
+        }
+      },
+      {
+        "id": "03b48764-bb2b-40c8-9302-e83595ccd727",
+        "type": "frameworks",
+        "column": "left",
+        "order": 3,
+        "visible": true,
+        "dataSlice": {
+          "kind": "all"
+        },
+        "display": "chips"
+      },
+      {
+        "id": "ffbaf1d4-0e2f-4e9f-9264-372450453f9d",
+        "type": "toolsDevOps",
+        "column": "left",
+        "order": 4,
+        "visible": true,
+        "title": "Tools and DevOps",
+        "dataSlice": {
+          "kind": "all"
+        }
+      },
+      {
+        "id": "3e042201-f962-4c9e-beea-1b5a9dd7efc2",
+        "type": "databases",
+        "column": "left",
+        "order": 5,
+        "visible": true,
+        "dataSlice": {
+          "kind": "all"
+        }
+      },
+      {
+        "id": "cad443c4-8aa5-459a-93e1-e6912921e004",
+        "type": "projects",
+        "column": "right",
+        "order": 0,
+        "visible": true,
+        "dataSlice": {
+          "kind": "all"
+        },
+        "style": {
+          "fontStyle": "mono",
+          "density": "compact",
+          "margin": {
+            "bottom": -2
+          }
+        }
+      },
+      {
+        "id": "4e157f63-48fc-4553-bb80-49f7c06755a1",
+        "type": "education",
+        "column": "right",
+        "order": 1,
+        "visible": true,
+        "dataSlice": {
+          "kind": "all"
+        },
+        "style": {
+          "fontStyle": "mono",
+          "density": "compact",
+          "margin": {
+            "bottom": 3
+          }
+        },
+        "display": "compact"
+      },
+      {
+        "id": "976b7c44-cc2e-4963-8c82-ddfeedcd45d2",
+        "type": "experience",
+        "column": "right",
+        "order": 2,
+        "visible": true,
+        "dataSlice": {
+          "kind": "all"
+        },
+        "style": {
+          "fontStyle": "default",
+          "density": "compact",
+          "margin": {
+            "top": -9
+          }
+        },
+        "display": "list"
+      },
+      {
+        "id": "be2a115b-80e6-45fa-8e66-2261533d810d",
+        "type": "languages",
+        "column": "right",
+        "order": 3,
+        "visible": true,
+        "dataSlice": {
+          "kind": "all"
+        },
+        "style": {
+          "density": "compact",
+          "fontStyle": "default",
+          "rounded": true,
+          "border": false
+        },
+        "display": "inline-between"
+      }
+    ]
+  },
+  "data": {
+    "personalInfo": {
+      "name": "ZENDOUH Abdelhamid",
+      "title": "Full-Stack Developer",
+      "email": "zendouhhamid@gmail.com",
+      "phone": "0549799748",
+      "location": "Algeria, Skikda",
+      "contacts": [
+        {
+          "type": "email",
+          "value": "zendouhhamid@gmail.com"
+        },
+        {
+          "type": "phone",
+          "value": "0549799748"
+        },
+        {
+          "type": "phone",
+          "value": "0561069180"
+        },
+        {
+          "type": "location",
+          "value": "Algeria, Skikda (Willing to relocate)"
+        },
+        {
+          "type": "github",
+          "value": "https://github.com/WexDex"
+        }
+      ],
+      "linkedin": "https://www.linkedin.com/in/zendouh-abdel-hamid/",
+      "github": "https://github.com/WexDex",
+      "website": "",
+      "summary": "Full-stack developer focused on modern web technologies and building performant, scalable applications. Combines strong frontend and backend skills with problem-solving and adaptability, with a growing interest in game development."
+    },
+    "experience": [
+      {
+        "company": "Mobile Top-Up Management Platform",
+        "position": "Web Developer",
+        "duration": "2024 - Present",
+        "description": [
+          "Contributed to a large-scale platform for managing mobile top-up transactions and workflows",
+          "Built responsive interfaces, dashboards, and internal tools using Vue.js, Vite, and Tailwind CSS",
+          "Collaborated with the team to improve usability, reliability, and daily operational workflows",
+          "Assisted with backend logic, debugging, and problem-solving across the application"
+        ]
+      },
+      {
+        "company": "E-commerce Platform (Freelance)",
+        "position": "Full-Stack Developer",
+        "duration": "2023 - 2024",
+        "description": [
+          "Designed and developed a full-stack e-commerce platform from scratch",
+          "Implemented authentication, checkout flow, admin dashboard, and product management systems",
+          "Developed advanced search/filtering features and integrated Google AdSense monetization",
+          "Handled the full application lifecycle from architecture to deployment under ecobrics.com"
+        ]
+      }
+    ],
+    "education": [
+      {
+        "institution": "University 20 August 1955, Skikda",
+        "degree": "Master’s Degree — Advanced Software and Applications Engineering",
+        "duration": "2020 - 2022",
+        "details": ""
+      },
+      {
+        "institution": "University 20 August 1955, Skikda",
+        "degree": "Bachelor’s Degree — Information Systems and Software Engineering",
+        "duration": "2017 - 2020",
+        "details": ""
+      }
+    ],
+    "programmingLanguages": [
+      {
+        "name": "JavaScript",
+        "level": 5
+      },
+      {
+        "name": "Python",
+        "level": 4
+      },
+      {
+        "name": "Java",
+        "level": 4
+      },
+      {
+        "name": "C#",
+        "level": 4
+      },
+      {
+        "name": "Lua",
+        "level": 4
+      }
+    ],
+    "frameworks": [
+      "React",
+      "Next.js",
+      "Vue.js",
+      "Node.js",
+      "Vite",
+      "Tailwind CSS"
+    ],
+    "toolsDevOps": [
+      "Git",
+      "Microsoft Office (Excel, Word)"
+    ],
+    "databases": [
+      "PostgreSQL",
+      "MySQL",
+      "MongoDB"
+    ],
+    "projects": [
+      {
+        "name": "Strategy Simulation & Decision Planner",
+        "description": "Open-source web app inspired by Slay the Spire for simplifying complex decision-making using node-based workflows.",
+        "tech": [
+          "Next.js",
+          "React",
+          "JavaScript"
+        ],
+        "github": "https://github.com/WexDex/sts-planner-reworked"
+      },
+      {
+        "name": "Customizable CV/Resume Generator",
+        "description": "Fully customizable resume builder with JSON structure and multi-format export (PDF, Word, PNG, JSON).",
+        "tech": [
+          "Next.js",
+          "React",
+          "JavaScript"
+        ],
+        "github": "https://github.com/WexDex/cv-gen"
+      },
+      {
+        "name": "Debt Tracking & Client Management App",
+        "description": "Mobile app for managing debts, clients, and transactions with backend synchronization support.",
+        "tech": [
+          "Flutter",
+          "Cloudflare",
+          "JavaScript"
+        ],
+        "github": "https://github.com/WexDex/wexcom-mobile"
+      }
+    ],
+    "certifications": [],
+    "languages": [
+      {
+        "language": "Arabic",
+        "proficiency": "Native"
+      },
+      {
+        "language": "English",
+        "proficiency": "Fluent"
+      },
+      {
+        "language": "French",
+        "proficiency": "Good"
+      }
+    ],
+    "awards": []
+  }
+}

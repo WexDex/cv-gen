@@ -28,6 +28,7 @@ export const displayOptionsByType: Partial<Record<SectionType, string[]>> = {
   frameworks: ["chips", "code-chips", "comma", "list"],
   toolsDevOps: ["chips", "code-chips", "comma", "list"],
   databases: ["chips", "code-chips", "comma", "list"],
+  languages: ["list", "inline-between"],
 };
 
 export const colorPresets = [

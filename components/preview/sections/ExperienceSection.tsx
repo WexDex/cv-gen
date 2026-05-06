@@ -26,7 +26,7 @@ export function ExperienceSection({
         <article
           key={`${item.company}-${index}`}
           className={cn(
-            "pb-2 border-b last:border-none",
+            "cv-print-subblock pb-2 border-b last:border-none",
             display === "timeline" && "relative pl-4 before:absolute before:left-0 before:top-2 before:h-full before:w-px before:bg-current/30",
             display === "compact" && "pb-1",
             theme.dividerClassName,

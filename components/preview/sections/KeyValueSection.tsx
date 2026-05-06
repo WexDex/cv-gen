@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { SectionShell } from "@/components/preview/sections/SectionShell";
 import type { TemplateTheme } from "@/components/templates/theme";
 import type { BlockStyle } from "@/lib/types";
@@ -29,7 +30,7 @@ export function KeyValueSection({
         {items.map((item) => {
           const level = Number(item.value.replace("/5", "")) || 0;
           return (
-            <div key={`${item.key}-${item.value}`} className="space-y-1">
+            <div key={`${item.key}-${item.value}`} className="cv-print-subblock space-y-1">
               <div className="flex justify-between text-xs">
                 <span className="font-semibold">{item.key}</span>
                 <span>{item.value}</span>
@@ -50,7 +51,7 @@ export function KeyValueSection({
         {items.map((item) => {
           const level = Number(item.value.replace("/5", "")) || 0;
           return (
-            <div key={`${item.key}-${item.value}`} className="flex items-center justify-between gap-3 text-xs">
+            <div key={`${item.key}-${item.value}`} className="cv-print-subblock flex items-center justify-between gap-3 text-xs">
               <span className="font-semibold">{item.key}</span>
               <span className="flex gap-1">
                 {Array.from({ length: 5 }).map((_, index) => (
@@ -67,12 +68,39 @@ export function KeyValueSection({
     );
   }
 
+  if (display === "inline-between") {
+    return (
+      <SectionShell title={title} theme={theme} blockStyle={blockStyle}>
+        <div
+          className="cv-print-subblock flex w-full min-w-0 flex-nowrap items-baseline gap-y-1 overflow-x-auto overflow-y-visible pb-0.5 text-[0.7rem] leading-tight sm:text-xs"
+          role="list"
+        >
+          {items.map((item, index) => (
+            <Fragment key={`${item.key}-${item.value}`}>
+              {index > 0 ? (
+                <span
+                  className="mx-1.5 min-h-px min-w-[12px] flex-1 basis-8 translate-y-[0.1em] border-0 border-b border-dashed border-current/50 sm:mx-2"
+                  aria-hidden
+                />
+              ) : null}
+              <span className="shrink-0 whitespace-nowrap" role="listitem">
+                <span className="font-semibold uppercase tracking-wide">{item.key}</span>
+                <span className="mx-0.5 text-current/50 sm:mx-1">:</span>
+                <span className="font-medium normal-case">{item.value}</span>
+              </span>
+            </Fragment>
+          ))}
+        </div>
+      </SectionShell>
+    );
+  }
+
   if (display === "chips" || display === "code-chips") {
     return (
       <SectionShell title={title} theme={theme} blockStyle={blockStyle}>
         <div className="flex flex-wrap gap-1.5">
           {items.map((item) => (
-            <span key={`${item.key}-${item.value}`} className={cn(theme.chipClassName, display === "code-chips" && "font-mono")}>
+            <span key={`${item.key}-${item.value}`} className={cn("cv-print-subblock", theme.chipClassName, display === "code-chips" && "font-mono")}>
               {display === "code-chips" ? `<${item.key} />` : item.key}
             </span>
           ))}
@@ -85,7 +113,7 @@ export function KeyValueSection({
     <SectionShell title={title} theme={theme} blockStyle={blockStyle}>
       <ul className="space-y-1 text-xs">
         {items.map((item) => (
-          <li key={`${item.key}-${item.value}`}>
+          <li key={`${item.key}-${item.value}`} className="cv-print-subblock">
             <span className="font-semibold">{item.key}</span>: {item.value}
           </li>
         ))}

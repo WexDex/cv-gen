@@ -9,6 +9,14 @@ export type BlockFontStyle = "default" | "mono" | "serif";
 export type BlockDensity = "compact" | "normal" | "spacious";
 export type BlockPadding = "sm" | "md" | "lg";
 
+/** Per-side spacing in px (screen / print). Omitted sides are left unset in CSS. */
+export interface BlockEdgeInsets {
+  top?: number;
+  right?: number;
+  bottom?: number;
+  left?: number;
+}
+
 export interface BlockStyle {
   background?: string;
   textColor?: string;
@@ -16,6 +24,12 @@ export interface BlockStyle {
   fontStyle?: BlockFontStyle;
   density?: BlockDensity;
   padding?: BlockPadding;
+  /** Overrides preset padding for any side that is set; other sides fall back to the current padding preset (sm/md/lg). */
+  paddingInset?: BlockEdgeInsets;
+  /** Per-side margin in px. */
+  margin?: BlockEdgeInsets;
+  /** Unitless line-height for body text (e.g. 1.45). */
+  lineHeight?: number;
   border?: boolean;
   rounded?: boolean;
 }

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import type { SectionShellProps } from "@/components/preview/sections/types";
 
@@ -13,6 +14,12 @@ const paddingClassMap = {
   lg: "p-4",
 } as const;
 
+const paddingPresetPx = {
+  sm: 8,
+  md: 12,
+  lg: 16,
+} as const;
+
 const fontClassMap = {
   default: "",
   mono: "font-mono",
@@ -20,19 +27,48 @@ const fontClassMap = {
 } as const;
 
 export function SectionShell({ title, theme, blockStyle, children }: SectionShellProps) {
-  const inlineStyle: React.CSSProperties = {
+  const preset = blockStyle?.padding ?? "sm";
+  const basePad = paddingPresetPx[preset];
+  const inset = blockStyle?.paddingInset;
+  const useCustomPadding =
+    inset &&
+    (inset.top !== undefined ||
+      inset.right !== undefined ||
+      inset.bottom !== undefined ||
+      inset.left !== undefined);
+
+  const pad = useCustomPadding
+    ? {
+        paddingTop: inset!.top ?? basePad,
+        paddingRight: inset!.right ?? basePad,
+        paddingBottom: inset!.bottom ?? basePad,
+        paddingLeft: inset!.left ?? basePad,
+      }
+    : {};
+
+  const m = blockStyle?.margin;
+  const marginStyle: CSSProperties = {
+    ...(m?.top !== undefined ? { marginTop: m.top } : {}),
+    ...(m?.right !== undefined ? { marginRight: m.right } : {}),
+    ...(m?.bottom !== undefined ? { marginBottom: m.bottom } : {}),
+    ...(m?.left !== undefined ? { marginLeft: m.left } : {}),
+  };
+
+  const inlineStyle: CSSProperties = {
     background: blockStyle?.background,
     color: blockStyle?.textColor,
     borderColor: blockStyle?.accent,
+    ...pad,
+    ...marginStyle,
   };
 
   return (
     <section
       className={cn(
-        "mb-5",
+        "cv-print-section mb-5",
         theme.contentClassName,
         fontClassMap[blockStyle?.fontStyle ?? "default"],
-        paddingClassMap[blockStyle?.padding ?? "sm"],
+        useCustomPadding ? "" : paddingClassMap[preset],
         blockStyle?.border ? "border" : "",
         blockStyle?.rounded ? "rounded-md" : "",
       )}
@@ -45,6 +81,7 @@ export function SectionShell({ title, theme, blockStyle, children }: SectionShel
           theme.textMutedClassName,
           densityClassMap[blockStyle?.density ?? "normal"],
         )}
+        style={blockStyle?.lineHeight !== undefined ? { lineHeight: blockStyle.lineHeight } : undefined}
       >
         {children}
       </div>

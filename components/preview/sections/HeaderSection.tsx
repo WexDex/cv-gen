@@ -27,7 +27,7 @@ export function HeaderSection({ info, theme, params, blockStyle }: HeaderSection
         ];
 
   return (
-    <header className={cn("mb-5 flex gap-3", theme.headerClassName)}>
+    <header className={cn("cv-print-header mb-5 flex gap-3", theme.headerClassName)}>
       {showPhoto && info.photoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -41,7 +41,7 @@ export function HeaderSection({ info, theme, params, blockStyle }: HeaderSection
       <div className="flex-1">
       <h1 className="text-3xl font-bold">{info.name}</h1>
       <p className={cn("text-lg", theme.textMutedClassName)}>{info.title}</p>
-      <div className={cn("mt-3 flex flex-wrap gap-3 text-xs", theme.textClassName)}>
+      <div className="mt-3 flex flex-wrap gap-3 text-xs">
         {contactItems.map((item, index) => (
           <span key={`${item.type}-${item.value}-${index}`} className="inline-flex items-center gap-1">
             {getContactIcon(item.type)}

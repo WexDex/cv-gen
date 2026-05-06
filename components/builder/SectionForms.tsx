@@ -1,13 +1,23 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 
 import { contactTypeOptions, getContactIcon } from "@/lib/contactMeta";
 import { useResumeStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import type { ContactType } from "@/lib/types";
-import type { ResumeData } from "@/lib/types";
+import type { ContactType, ResumeData, SectionType } from "@/lib/types";
+
+type FormColumnSide = "left" | "right";
+
+const MORE_SECTION_TYPES: SectionType[] = [
+  "openSource",
+  "certifications",
+  "languages",
+  "awards",
+  "volunteer",
+  "custom",
+];
 
 const parseCommaList = (value: string) =>
   value
@@ -37,17 +47,68 @@ interface SectionFormsProps {
 export function SectionForms({ isDark = false }: SectionFormsProps) {
   const activeResume = useResumeStore((state) => state.getActiveResume());
   const updateData = useResumeStore((state) => state.updateData);
+  const updateBlock = useResumeStore((state) => state.updateBlock);
+  const [formColumn, setFormColumn] = useState<FormColumnSide>("left");
 
   const data = useMemo(() => activeResume?.data, [activeResume]);
+
+  const typesInColumn = useMemo(() => {
+    const next = new Set<SectionType>();
+    if (!activeResume) return next;
+    for (const section of activeResume.layout.sections) {
+      if (section.column === "full" || section.column === formColumn) {
+        next.add(section.type);
+      }
+    }
+    return next;
+  }, [activeResume, formColumn]);
 
   if (!activeResume || !data) {
     return <div className="p-4 text-sm text-zinc-500">No active resume selected.</div>;
   }
 
+  const hasType = (type: SectionType) => typesInColumn.has(type);
+  const hasAnyType = (types: SectionType[]) => types.some((t) => typesInColumn.has(t));
+
+  const showPersonalCore = hasType("personalInfo");
+  const showSummaryField = hasType("summary");
+  const showMoreSections = hasAnyType(MORE_SECTION_TYPES);
+
+  const personalInfoBlock = activeResume.layout.sections.find(
+    (section) =>
+      section.type === "personalInfo" && (section.column === "full" || section.column === formColumn),
+  );
+
+  const tabBtn = (side: FormColumnSide, label: string) => (
+    <button
+      key={side}
+      type="button"
+      className={cn(
+        "rounded px-2 py-1 text-xs font-medium uppercase tracking-wide",
+        formColumn === side
+          ? isDark
+            ? "bg-cyan-700 text-white"
+            : "bg-zinc-900 text-white"
+          : isDark
+            ? "bg-zinc-800 text-zinc-200"
+            : "bg-zinc-200 text-zinc-800",
+      )}
+      onClick={() => setFormColumn(side)}
+    >
+      {label}
+    </button>
+  );
+
   const inputClass = cn(
     "w-full rounded border px-2 py-1 text-sm",
     isDark ? "border-zinc-700 bg-zinc-800 text-zinc-100 placeholder:text-zinc-500" : "border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-500",
   );
+  const selectClass = cn(
+    inputClass,
+    "min-w-0 flex-1 cursor-pointer",
+    isDark ? "[color-scheme:dark]" : "[color-scheme:light]",
+  );
+  const optionClass = isDark ? "bg-zinc-800 text-zinc-100" : "bg-white text-zinc-900";
   const textareaClass = cn(
     "w-full rounded border px-2 py-1 text-sm",
     isDark ? "border-zinc-700 bg-zinc-800 text-zinc-100 placeholder:text-zinc-500" : "border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-500",
@@ -62,32 +123,44 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
     "inline-flex h-7 w-7 items-center justify-center rounded border text-red-600",
     isDark ? "border-red-700 bg-zinc-900 hover:bg-red-950/40" : "border-red-300 bg-red-50 hover:bg-red-100",
   );
-  const lockedContactTypes = ["email", "phone", "location", "linkedin", "github", "website"] as const;
-  const baseContacts = data.personalInfo.contacts ?? [];
-  const upsertContact = (list: Array<{ type: string; value: string }>, type: string, value: string) => {
-    const index = list.findIndex((item) => item.type.toLowerCase() === type.toLowerCase());
-    if (index >= 0) {
-      return updateArrayItem(list, index, (item) => ({ ...item, type, value }));
-    }
-    return [...list, { type, value }];
-  };
-  const getContactValue = (type: (typeof lockedContactTypes)[number]) => {
-    const found = baseContacts.find((item) => item.type.toLowerCase() === type)?.value;
-    if (found) return found;
-    if (type === "email") return data.personalInfo.email ?? "";
-    if (type === "phone") return data.personalInfo.phone ?? "";
-    if (type === "location") return data.personalInfo.location ?? "";
-    if (type === "linkedin") return data.personalInfo.linkedin ?? "";
-    if (type === "github") return data.personalInfo.github ?? "";
-    if (type === "website") return data.personalInfo.website ?? "";
-    return "";
-  };
-  const customContacts = baseContacts.filter(
-    (item) => !lockedContactTypes.includes(item.type.toLowerCase() as (typeof lockedContactTypes)[number]) && item.type.toLowerCase() !== "summary",
-  );
+  const contacts =
+    data.personalInfo.contacts && data.personalInfo.contacts.length > 0
+      ? data.personalInfo.contacts
+      : [
+          { type: "email", value: data.personalInfo.email ?? "" },
+          { type: "phone", value: data.personalInfo.phone ?? "" },
+          { type: "location", value: data.personalInfo.location ?? "" },
+          ...(data.personalInfo.linkedin ? [{ type: "linkedin", value: data.personalInfo.linkedin }] : []),
+          ...(data.personalInfo.github ? [{ type: "github", value: data.personalInfo.github }] : []),
+          ...(data.personalInfo.website ? [{ type: "website", value: data.personalInfo.website }] : []),
+        ];
   return (
     <div className="space-y-3 overflow-auto p-3">
-      <SectionBlock title="Personal Information" isDark={isDark}>
+      <div
+        className={cn(
+          "sticky top-0 z-1 -mx-1 flex flex-wrap items-center gap-2 border-b px-1 pb-2",
+          isDark ? "border-zinc-600 bg-zinc-900" : "border-zinc-200 bg-zinc-50",
+        )}
+      >
+        <span className={cn("text-[10px] uppercase tracking-wide", isDark ? "text-zinc-400" : "text-zinc-500")}>Column</span>
+        <div className="flex gap-1">
+          {tabBtn("left", "Left")}
+          {tabBtn("right", "Right")}
+        </div>
+      </div>
+
+      {typesInColumn.size === 0 ? (
+        <p className={cn("text-sm", isDark ? "text-zinc-400" : "text-zinc-600")}>
+          No blocks in this column (add blocks in Layout, or move blocks from the other column).
+        </p>
+      ) : null}
+
+      {showPersonalCore || showSummaryField ? (
+      <SectionBlock
+        title={showPersonalCore ? "Personal Information" : "Summary"}
+        isDark={isDark}
+      >
+        {showPersonalCore ? (
         <div className="grid grid-cols-[170px_1fr] gap-2">
           <div className={cn("rounded border px-2 py-1 text-sm font-medium", isDark ? "border-zinc-700 bg-zinc-800 text-zinc-200" : "border-zinc-300 bg-zinc-50 text-zinc-700")}>Name</div>
           <input
@@ -96,13 +169,27 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
             onChange={(event) => setData({ ...data, personalInfo: { ...data.personalInfo, name: event.target.value } })}
             placeholder="Full name"
           />
-          <div className={cn("rounded border px-2 py-1 text-sm font-medium", isDark ? "border-zinc-700 bg-zinc-800 text-zinc-200" : "border-zinc-300 bg-zinc-50 text-zinc-700")}>Title</div>
+          <div className={cn("rounded border px-2 py-1 text-sm font-medium", isDark ? "border-zinc-700 bg-zinc-800 text-zinc-200" : "border-zinc-300 bg-zinc-50 text-zinc-700")}>Specialty / Title</div>
           <input
             className={inputClass}
             value={data.personalInfo.title}
             onChange={(event) => setData({ ...data, personalInfo: { ...data.personalInfo, title: event.target.value } })}
             placeholder="Professional title"
           />
+          <div className={cn("rounded border px-2 py-1 text-sm font-medium", isDark ? "border-zinc-700 bg-zinc-800 text-zinc-200" : "border-zinc-300 bg-zinc-50 text-zinc-700")}>Show image</div>
+          <label className={cn("inline-flex items-center gap-2 rounded border px-2 py-1 text-sm", isDark ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "border-zinc-300 bg-white text-zinc-900")}>
+            <input
+              type="checkbox"
+              checked={Boolean(personalInfoBlock?.params?.showPhoto)}
+              onChange={(event) => {
+                if (!personalInfoBlock) return;
+                updateBlock(personalInfoBlock.id, {
+                  params: { ...personalInfoBlock.params, showPhoto: event.target.checked },
+                });
+              }}
+            />
+            Enable profile image in preview
+          </label>
           <div className={cn("rounded border px-2 py-1 text-sm font-medium", isDark ? "border-zinc-700 bg-zinc-800 text-zinc-200" : "border-zinc-300 bg-zinc-50 text-zinc-700")}>Photo URL</div>
           <input
             className={inputClass}
@@ -111,60 +198,40 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
             placeholder="https://..."
           />
         </div>
+        ) : null}
+        {showSummaryField ? (
         <textarea
-          className={cn(textareaClass, "h-24")}
+          className={cn(textareaClass, "h-24", showPersonalCore && "mt-2")}
           value={data.personalInfo.summary}
           onChange={(event) => setData({ ...data, personalInfo: { ...data.personalInfo, summary: event.target.value } })}
           placeholder="Summary (multiline)"
         />
+        ) : null}
+        {showPersonalCore ? (
         <div className="space-y-2 rounded border p-2">
           <p className={cn("text-xs font-semibold", isDark ? "text-zinc-200" : "text-zinc-700")}>Flexible Contacts</p>
-          {lockedContactTypes.map((type) => (
-            <div key={type} className="grid grid-cols-[170px_1fr_36px] gap-2">
-              <label className={cn("flex items-center gap-2 rounded border px-2", isDark ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "border-zinc-300 bg-white text-zinc-900")}>
-                <span className={cn(isDark ? "text-zinc-300" : "text-zinc-600")}>{getContactIcon(type)}</span>
-                <span className="w-full py-1 text-sm">
-                  {contactTypeOptions.find((option) => option.value === type)?.label ?? type}
-                </span>
-              </label>
-              <input
-                className={inputClass}
-                value={getContactValue(type)}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  const nextContacts = upsertContact(baseContacts, type, value);
-                  setData({
-                    ...data,
-                    personalInfo: {
-                      ...data.personalInfo,
-                      contacts: nextContacts,
-                      ...(type === "email" ? { email: value } : {}),
-                      ...(type === "phone" ? { phone: value } : {}),
-                      ...(type === "location" ? { location: value } : {}),
-                      ...(type === "linkedin" ? { linkedin: value || undefined } : {}),
-                      ...(type === "github" ? { github: value || undefined } : {}),
-                      ...(type === "website" ? { website: value || undefined } : {}),
-                    },
-                  });
-                }}
-                placeholder="value"
-              />
-              <div />
-            </div>
-          ))}
-          {customContacts.map((contact, index) => (
+          {contacts.map((contact, index) => (
             <div key={`${contact.type}-${index}`} className="grid grid-cols-[170px_1fr_36px] gap-2">
-              <label className={cn("flex items-center gap-2 rounded border px-2", isDark ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "bg-white")}>
-                <span className={cn(isDark ? "text-zinc-300" : "text-zinc-600")}>{getContactIcon(contact.type)}</span>
+              <div className="flex min-w-0 items-center gap-2">
+                <span
+                  className={cn(
+                    "flex size-9 shrink-0 items-center justify-center rounded border",
+                    isDark ? "border-zinc-700 bg-zinc-900 text-zinc-300" : "border-zinc-300 bg-zinc-50 text-zinc-600",
+                  )}
+                  aria-hidden
+                >
+                  {getContactIcon(contact.type)}
+                </span>
                 <select
-                  className={cn("w-full bg-transparent py-1 text-sm outline-none", isDark ? "text-zinc-100" : "text-zinc-900")}
+                  className={selectClass}
+                  aria-label={`Contact type ${index + 1}`}
                   value={contact.type}
                   onChange={(event) =>
                     setData({
                       ...data,
                       personalInfo: {
                         ...data.personalInfo,
-                        contacts: updateArrayItem(data.personalInfo.contacts ?? [], index, (item) => ({
+                        contacts: updateArrayItem(contacts, index, (item) => ({
                           ...item,
                           type: event.target.value as ContactType,
                         })),
@@ -173,12 +240,12 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
                   }
                 >
                   {contactTypeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
+                    <option key={option.value} value={option.value} className={optionClass}>
                       {option.label}
                     </option>
                   ))}
                 </select>
-              </label>
+              </div>
               <input
                 className={inputClass}
                 value={contact.value}
@@ -187,7 +254,7 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
                     ...data,
                     personalInfo: {
                       ...data.personalInfo,
-                      contacts: updateArrayItem(data.personalInfo.contacts ?? [], index, (item) => ({
+                      contacts: updateArrayItem(contacts, index, (item) => ({
                         ...item,
                         value: event.target.value,
                       })),
@@ -204,11 +271,7 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
                     ...data,
                     personalInfo: {
                       ...data.personalInfo,
-                      contacts: removeArrayItem(customContacts, index).concat(
-                        lockedContactTypes
-                          .map((type) => ({ type, value: getContactValue(type) }))
-                          .filter((item) => item.value.trim().length > 0),
-                      ),
+                      contacts: removeArrayItem(contacts, index),
                     },
                   })
                 }
@@ -225,7 +288,7 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
                 ...data,
                 personalInfo: {
                   ...data.personalInfo,
-                  contacts: [...baseContacts, { type: "link", value: "" }],
+                  contacts: [...contacts, { type: "link", value: "" }],
                 },
               })
             }
@@ -233,8 +296,11 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
             + add contact field
           </button>
         </div>
+        ) : null}
       </SectionBlock>
+      ) : null}
 
+      {hasType("programmingLanguages") ? (
       <SectionBlock title="Programming Languages" isDark={isDark}>
         {data.programmingLanguages.map((lang, index) => (
           <div key={`${lang.name}-${index}`} className="grid grid-cols-[1fr_90px_36px] gap-2">
@@ -275,19 +341,27 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
           + add language
         </button>
       </SectionBlock>
+      ) : null}
 
+      {hasType("frameworks") ? (
       <SectionBlock title="Frameworks" isDark={isDark}>
         <input className={inputClass} value={data.frameworks.join(", ")} onChange={(event) => setData({ ...data, frameworks: parseCommaList(event.target.value) })} placeholder="frameworks comma separated" />
       </SectionBlock>
+      ) : null}
 
+      {hasType("toolsDevOps") ? (
       <SectionBlock title="Tools and DevOps" isDark={isDark}>
         <input className={inputClass} value={data.toolsDevOps.join(", ")} onChange={(event) => setData({ ...data, toolsDevOps: parseCommaList(event.target.value) })} placeholder="tools/devops comma separated" />
       </SectionBlock>
+      ) : null}
 
+      {hasType("databases") ? (
       <SectionBlock title="Databases" isDark={isDark}>
         <input className={inputClass} value={data.databases.join(", ")} onChange={(event) => setData({ ...data, databases: parseCommaList(event.target.value) })} placeholder="databases comma separated" />
       </SectionBlock>
+      ) : null}
 
+      {hasType("experience") ? (
       <SectionBlock title="Experience" isDark={isDark}>
         {data.experience.map((exp, index) => (
           <div key={`${exp.company}-${index}`} className="space-y-2 rounded border p-2">
@@ -317,7 +391,9 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
           + add experience
         </button>
       </SectionBlock>
+      ) : null}
 
+      {hasType("education") ? (
       <SectionBlock title="Education" isDark={isDark}>
         {data.education.map((edu, index) => (
           <div key={`${edu.institution}-${index}`} className="grid grid-cols-[1fr_1fr_90px_36px] gap-2">
@@ -333,7 +409,9 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
           + add education
         </button>
       </SectionBlock>
+      ) : null}
 
+      {hasType("projects") ? (
       <SectionBlock title="Projects" isDark={isDark}>
         {data.projects.map((project, index) => (
           <div key={`${project.name}-${index}`} className="space-y-2 rounded border p-2">
@@ -351,7 +429,9 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
           + add project
         </button>
       </SectionBlock>
+      ) : null}
 
+      {hasType("skills") ? (
       <SectionBlock title="Skills" isDark={isDark}>
         {(data.skills ?? []).map((skill, index) => (
           <div key={`${skill.category}-${index}`} className="grid grid-cols-[1fr_1fr_36px] gap-2">
@@ -366,7 +446,9 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
           + add skill group
         </button>
       </SectionBlock>
+      ) : null}
 
+      {showMoreSections ? (
       <SectionBlock title="More Sections" isDark={isDark}>
         <input className={inputClass} value={JSON.stringify(data.openSource ?? [])} onChange={(event) => { try { setData({ ...data, openSource: JSON.parse(event.target.value) }); } catch {} }} placeholder="openSource JSON array" />
         <input className={inputClass} value={JSON.stringify(data.certifications ?? [])} onChange={(event) => { try { setData({ ...data, certifications: JSON.parse(event.target.value) }); } catch {} }} placeholder="certifications JSON array" />
@@ -375,6 +457,7 @@ export function SectionForms({ isDark = false }: SectionFormsProps) {
         <input className={inputClass} value={JSON.stringify(data.volunteer ?? [])} onChange={(event) => { try { setData({ ...data, volunteer: JSON.parse(event.target.value) }); } catch {} }} placeholder="volunteer JSON array" />
         <textarea className={cn(textareaClass, "h-24 font-mono text-xs")} value={JSON.stringify(data.custom ?? {}, null, 2)} onChange={(event) => { try { setData({ ...data, custom: JSON.parse(event.target.value) }); } catch {} }} placeholder="custom JSON object" />
       </SectionBlock>
+      ) : null}
     </div>
   );
 }

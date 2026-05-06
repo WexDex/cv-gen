@@ -74,23 +74,34 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
     event.target.value = "";
   };
 
+  const panel = (extra?: string) =>
+    cn(
+      "min-w-0 shrink rounded border p-1.5",
+      uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50",
+      extra,
+    );
+  const tightBtn = cn(
+    "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] leading-tight whitespace-nowrap",
+    uiTheme === "dark" ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "bg-white",
+  );
+
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center justify-between gap-3 border-b px-3 py-2",
+        "flex min-h-10 min-w-0 flex-nowrap items-stretch gap-1.5 overflow-hidden border-b px-2 py-1.5",
         uiTheme === "dark" ? "border-zinc-700 bg-zinc-900 text-zinc-100" : "bg-white text-zinc-900",
       )}
     >
-      <div className="flex flex-wrap items-start gap-3">
-        <div className={cn("rounded border p-2", uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50")}>
-          <p className={cn("mb-1 text-[10px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
+      <div className="flex min-w-0 flex-1 flex-nowrap items-stretch gap-1.5 overflow-hidden">
+        <div className={panel()}>
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
             Project List
           </p>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
             <button
               type="button"
               title="Previous project"
-              className={cn("rounded border p-1", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")}
+              className={cn("shrink-0 rounded border p-0.5", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")}
               onClick={() => setActiveResume(prevResume.id)}
                 disabled={resumes.length <= 1}
             >
@@ -106,7 +117,7 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
                       title={isActive ? "Current project" : `Open project ${resume.meta.name}`}
                       onClick={isActive ? undefined : () => setActiveResume(resume.id)}
                       className={cn(
-                        "max-w-[140px] truncate rounded border px-2 py-1 text-xs",
+                        "max-w-[min(140px,18vw)] min-w-0 shrink truncate rounded border px-1.5 py-0.5 text-[11px]",
                         isActive
                           ? uiTheme === "dark"
                             ? "border-cyan-600 bg-cyan-700 text-white"
@@ -124,7 +135,7 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
             <button
               type="button"
               title="Next project"
-              className={cn("rounded border p-1", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")}
+              className={cn("shrink-0 rounded border p-0.5", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")}
               onClick={() => setActiveResume(nextResume.id)}
                 disabled={resumes.length <= 1}
             >
@@ -133,26 +144,26 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
           </div>
         </div>
 
-        <div className={cn("rounded border p-2", uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50")}>
-          <p className={cn("mb-1 text-[10px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
+        <div className={panel()}>
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
             Add New
           </p>
-          <div className="flex items-center gap-1">
-            <button title="Create sample project" type="button" className={cn("rounded border px-2 py-1 text-xs", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")} onClick={() => addResume("sample", "Sample Project")}>From sample</button>
-            <button title="Create blank project" type="button" className={cn("rounded border px-2 py-1 text-xs", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")} onClick={() => addResume("blank", "Blank Project")}>Blank</button>
-            <Link title="Browse template gallery" href="/templates" className={cn("rounded border px-2 py-1 text-xs", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")}>Template gallery</Link>
+          <div className="flex min-w-0 flex-nowrap items-center gap-0.5">
+            <button title="Create sample project" type="button" className={cn("shrink-0 rounded border px-1.5 py-0.5 text-[11px]", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")} onClick={() => addResume("sample", "Sample Project")}>Sample</button>
+            <button title="Create blank project" type="button" className={cn("shrink-0 rounded border px-1.5 py-0.5 text-[11px]", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")} onClick={() => addResume("blank", "Blank Project")}>Blank</button>
+            <Link title="Browse template gallery" href="/templates" className={cn("shrink-0 rounded border px-1.5 py-0.5 text-[11px]", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")}>Templates</Link>
           </div>
         </div>
 
-        <div className={cn("rounded border p-2", uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50")}>
-          <p className={cn("mb-1 text-[10px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
+        <div className={panel()}>
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
             Actions
           </p>
-          <div className="flex items-center gap-1">
+          <div className="flex min-w-0 flex-nowrap items-center gap-0.5">
             <button
               title="Edit current project name"
               type="button"
-              className={cn("inline-flex items-center gap-1 rounded border px-2 py-1 text-xs", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")}
+              className={cn("inline-flex shrink-0 items-center gap-0.5 rounded border px-1.5 py-0.5 text-[11px]", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")}
               onClick={() => {
                 const nextName = window.prompt("Project name", activeResume.meta.name);
                 if (nextName === null) return;
@@ -162,19 +173,19 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
               <Pencil size={12} />
               Edit name
             </button>
-            <button title="Duplicate current project" type="button" className={cn("inline-flex items-center gap-1 rounded border px-2 py-1 text-xs", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")} onClick={duplicateActiveResume}>
+            <button title="Duplicate current project" type="button" className={cn("inline-flex shrink-0 items-center gap-0.5 rounded border px-1.5 py-0.5 text-[11px]", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")} onClick={duplicateActiveResume}>
               <CopyPlus size={12} />
               Duplicate
             </button>
-            <button title="Delete current project" type="button" className={cn("inline-flex items-center gap-1 rounded border px-2 py-1 text-xs text-red-600 disabled:opacity-50", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")} disabled={resumes.length <= 1} onClick={() => deleteResume(activeId)}>
+            <button title="Delete current project" type="button" className={cn("inline-flex shrink-0 items-center gap-0.5 rounded border px-1.5 py-0.5 text-[11px] text-red-600 disabled:opacity-50", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")} disabled={resumes.length <= 1} onClick={() => deleteResume(activeId)}>
               <Trash2 size={12} />
               Delete
             </button>
           </div>
         </div>
 
-        <div className={cn("rounded border p-2", uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50")}>
-          <p className={cn("mb-1 text-[10px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
+        <div className={panel("min-w-[120px] max-w-[min(100%,28rem)]")}>
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
             Template Selection
           </p>
           <OptionChips
@@ -183,11 +194,13 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
             onChange={(value) => setTemplate(value as typeof activeResume.templateId)}
             isDark={uiTheme === "dark"}
             size="sm"
+            nowrap
+            truncateLabels
           />
         </div>
 
-        <div className={cn("rounded border p-2", uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50")}>
-          <p className={cn("mb-1 text-[10px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
+        <div className={panel("shrink-0")}>
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
             Preview Theme
           </p>
           {templateThemes[activeResume.templateId].light && templateThemes[activeResume.templateId].dark ? (
@@ -199,7 +212,7 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
                   type="button"
                   onClick={() => setTemplateVariant(variant)}
                   className={cn(
-                    "rounded px-2 py-1 text-xs capitalize",
+                    "rounded px-1.5 py-0.5 text-[11px] capitalize",
                     activeResume.templateVariant === variant
                       ? uiTheme === "dark"
                         ? "bg-cyan-700 text-white"
@@ -218,14 +231,14 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
           )}
         </div>
 
-        <div className={cn("rounded border p-2", uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50")}>
-          <p className={cn("mb-1 text-[10px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
+        <div className={panel("shrink-0")}>
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
             UI Theme
           </p>
           <button
             title="Toggle UI theme"
             className={cn(
-              "inline-flex items-center gap-1 rounded border px-2 py-1 text-xs",
+              "inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-[11px]",
               uiTheme === "dark" ? "border-zinc-700 bg-zinc-900 text-zinc-100" : "bg-white",
             )}
             type="button"
@@ -237,82 +250,75 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
         </div>
       </div>
 
-      <div className={cn("rounded border p-2", uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50")}>
-        <p className={cn("mb-1 text-[10px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-          Export / Import
-        </p>
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <button
-            className={cn(
-              "inline-flex items-center gap-1 rounded border px-2 py-1",
-              uiTheme === "dark" ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "bg-white",
-            )}
-            type="button"
-            onClick={() => {
-              if (!previewRef.current) return;
-              openA4Preview(previewRef.current, `${activeResume.meta.name} - A4 Preview`);
-            }}
-            title="Open A4 preview in new tab"
-          >
-            <ExternalLink size={14} />
-            Preview
-          </button>
-          <button
-            className={cn(
-              "inline-flex items-center gap-1 rounded border px-2 py-1",
-              uiTheme === "dark" ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "bg-white",
-            )}
-            type="button"
-            onClick={exportAsPrint}
-            title="Export as PDF (print)"
-          >
-            <FileText size={14} />
-            PDF
-          </button>
-          <button
-            className={cn(
-              "inline-flex items-center gap-1 rounded border px-2 py-1",
-              uiTheme === "dark" ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "bg-white",
-            )}
-            type="button"
-            onClick={() => previewRef.current && exportAsPng(previewRef.current)}
-            title="Export as PNG image"
-          >
-            <ImageIcon size={14} />
-            PNG
-          </button>
-          <button
-            className={cn(
-              "inline-flex items-center gap-1 rounded border px-2 py-1",
-              uiTheme === "dark" ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "bg-white",
-            )}
-            type="button"
-            onClick={() => exportAsDocx(activeResume)}
-            title="Export as DOCX"
-          >
-            <Download size={14} />
-            DOCX
-          </button>
-          <button
-            className={cn(
-              "inline-flex items-center gap-1 rounded border px-2 py-1",
-              uiTheme === "dark" ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "bg-white",
-            )}
-            type="button"
-            onClick={() => exportResumeJson(activeResume)}
-            title="Export as JSON"
-          >
-            <FileJson size={14} />
-            JSON
-          </button>
-          <label
-            className={cn(
-              "inline-flex cursor-pointer items-center gap-1 rounded border px-2 py-1",
-              uiTheme === "dark" ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "bg-white",
-            )}
-          >
-            <Upload size={14} />
+      <div
+        className={cn(
+          "ml-2 flex min-w-0 shrink-0 items-stretch gap-2 border-l pl-2 sm:ml-3 sm:gap-3 sm:pl-3",
+          uiTheme === "dark" ? "border-zinc-600" : "border-zinc-300",
+        )}
+      >
+        <div
+          className={cn(
+            "min-w-0 rounded border p-1.5",
+            uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50",
+          )}
+        >
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
+            Export
+          </p>
+          <div className="flex min-w-0 flex-nowrap items-center gap-1">
+            <button
+              className={tightBtn}
+              type="button"
+              onClick={() => {
+                if (!previewRef.current) return;
+                try {
+                  openA4Preview(previewRef.current, `${activeResume.meta.name} - A4 Preview`);
+                } catch (error) {
+                  console.error(error);
+                  alert(error instanceof Error ? error.message : "Could not open preview.");
+                }
+              }}
+              title="Open A4 preview in new tab"
+            >
+              <ExternalLink size={12} />
+              Preview
+            </button>
+            <button className={tightBtn} type="button" onClick={exportAsPrint} title="Export as PDF (print)">
+              <FileText size={12} />
+              PDF
+            </button>
+            <button
+              className={tightBtn}
+              type="button"
+              onClick={() => previewRef.current && exportAsPng(previewRef.current)}
+              title="Export as PNG image"
+            >
+              <ImageIcon size={12} />
+              PNG
+            </button>
+            <button className={tightBtn} type="button" onClick={() => exportAsDocx(activeResume)} title="Export as DOCX">
+              <Download size={12} />
+              DOCX
+            </button>
+            <button className={tightBtn} type="button" onClick={() => exportResumeJson(activeResume)} title="Export as JSON">
+              <FileJson size={12} />
+              JSON
+            </button>
+          </div>
+        </div>
+
+        <div
+          className={cn(
+            "shrink-0 rounded border p-1.5",
+            uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50",
+          )}
+        >
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
             Import
+          </p>
+          <label className={cn(tightBtn, "cursor-pointer")}>
+            <Upload size={12} />
+            JSON file
             <input className="hidden" type="file" accept=".json,application/json" onChange={handleImport} />
           </label>
         </div>

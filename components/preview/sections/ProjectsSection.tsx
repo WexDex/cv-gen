@@ -26,7 +26,7 @@ export function ProjectsSection({
         <article
           key={`${item.name}-${index}`}
           className={cn(
-            "pb-2 border-b last:border-none",
+            "cv-print-subblock pb-2 border-b last:border-none",
             display === "cards" && "rounded-md border p-2 mb-2",
             display === "compact" && "pb-1",
             theme.dividerClassName,

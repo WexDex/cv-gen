@@ -11,6 +11,7 @@ import { KeyValueSection } from "@/components/preview/sections/KeyValueSection";
 import { PlainTextSection } from "@/components/preview/sections/PlainTextSection";
 import { ProjectsSection } from "@/components/preview/sections/ProjectsSection";
 import { SectionShell } from "@/components/preview/sections/SectionShell";
+import { useA4PreviewPageSnap } from "@/components/preview/useA4PreviewPageSnap";
 import { cn } from "@/lib/utils";
 import type { ColumnId, Resume, SectionPlacement } from "@/lib/types";
 
@@ -58,6 +59,8 @@ export function ResumePreview({
   const theme = getTemplateTheme(resume.templateId, resume.templateVariant ?? "light");
   const visibleSections = resume.layout.sections.filter((section) => section.visible);
   const isPreviewDark = resume.templateVariant === "dark";
+
+  useA4PreviewPageSnap(previewRef, resume);
 
   const applySlice = <T,>(items: T[], section: SectionPlacement): T[] => {
     if (!section.dataSlice || section.dataSlice.kind === "all") return items;
@@ -159,7 +162,7 @@ export function ResumePreview({
         return (
           <SectionShell title={sectionTitle} theme={theme} blockStyle={section.style}>
             {data.skills?.map((group) => (
-              <p key={group.category} className="text-xs">
+              <p key={group.category} className="cv-print-subblock text-xs">
                 <span className="font-semibold">{group.category}:</span> {group.items.join(" • ")}
               </p>
             ))}
@@ -169,7 +172,7 @@ export function ResumePreview({
         return (
           <SectionShell title={sectionTitle} theme={theme} blockStyle={section.style}>
             {applySlice(data.openSource ?? [], section).map((item) => (
-              <div key={item.name} className="text-xs">
+              <div key={item.name} className="cv-print-subblock text-xs">
                 <p className="font-semibold">{item.name}</p>
                 <p>{item.description}</p>
                 <p className={theme.linkClassName}>{item.url}</p>
@@ -181,7 +184,7 @@ export function ResumePreview({
         return (
           <SectionShell title={sectionTitle} theme={theme} blockStyle={section.style}>
             {applySlice(data.certifications ?? [], section).map((item) => (
-              <p key={item.name} className="text-xs">
+              <p key={item.name} className="cv-print-subblock text-xs">
                 <span className="font-semibold">{item.name}</span> - {item.issuer} ({item.date})
               </p>
             ))}
@@ -192,6 +195,7 @@ export function ResumePreview({
           <KeyValueSection
             title={sectionTitle}
             theme={theme}
+            display={section.display}
             blockStyle={section.style}
             items={applySlice(data.languages ?? [], section).map((item) => ({
               key: item.language,
@@ -203,7 +207,7 @@ export function ResumePreview({
         return (
           <SectionShell title={sectionTitle} theme={theme} blockStyle={section.style}>
             {applySlice(data.awards ?? [], section).map((item) => (
-              <p key={`${item.title}-${item.date ?? ""}`} className="text-xs">
+              <p key={`${item.title}-${item.date ?? ""}`} className="cv-print-subblock text-xs">
                 <span className="font-semibold">{item.title}</span>
                 {item.issuer ? ` - ${item.issuer}` : ""}
                 {item.date ? ` (${item.date})` : ""}
@@ -215,7 +219,7 @@ export function ResumePreview({
         return (
           <SectionShell title={sectionTitle} theme={theme} blockStyle={section.style}>
             {applySlice(data.volunteer ?? [], section).map((item) => (
-              <div key={`${item.organization}-${item.role}`} className="text-xs">
+              <div key={`${item.organization}-${item.role}`} className="cv-print-subblock text-xs">
                 <p className="font-semibold">
                   {item.role} - {item.organization}
                 </p>
@@ -229,7 +233,7 @@ export function ResumePreview({
         return (
           <SectionShell title={sectionTitle} theme={theme} blockStyle={section.style}>
             {Object.entries(data.custom ?? {}).map(([key, value]) => (
-              <div key={key} className="text-xs">
+              <div key={key} className="cv-print-subblock text-xs">
                 <p className="font-semibold">{value.title}</p>
                 <p>{value.body}</p>
               </div>
@@ -254,11 +258,14 @@ export function ResumePreview({
         id="print-root"
         ref={previewRef}
         className={cn(
-          "mx-auto min-h-[297mm] w-[210mm] max-w-full overflow-hidden border border-zinc-200 shadow-lg print:shadow-none print:border-none",
+          "relative mx-auto min-h-[297mm] w-[210mm] max-w-full overflow-hidden border border-zinc-200 shadow-lg print:min-h-0 print:overflow-visible print:shadow-none print:border-none",
           theme.rootClassName,
         )}
       >
-        <div className="grid min-h-[297mm]" style={{ gridTemplateColumns: layoutColumns.length === 1 ? "1fr" : `${resume.layout.sidebarWidthPct}% 1fr` }}>
+        <div
+          className="cv-resume-sheet-inner relative z-0 grid min-h-[297mm] print:min-h-0 print:items-start print:content-start"
+          style={{ gridTemplateColumns: layoutColumns.length === 1 ? "1fr" : `${resume.layout.sidebarWidthPct}% 1fr` }}
+        >
           {layoutColumns.map((column) => (
             <div
               key={column}
@@ -286,8 +293,10 @@ export function ResumePreview({
                   )}
                 >
                   <div
+                    data-export-ignore
                     className={cn(
-                      "absolute -top-1 right-0 z-20 hidden -translate-y-full gap-1 rounded border p-1 text-[10px] shadow-md group-hover:flex",
+                      "absolute right-0 top-0 z-20 -translate-y-full gap-1 rounded border p-1 text-[10px] shadow-md",
+                      selectedBlockId === section.id ? "flex" : "hidden group-hover:flex group-focus-within:flex",
                       isPreviewDark
                         ? "border-slate-700 bg-slate-900/95 text-slate-100"
                         : "border-slate-300 bg-white/95 text-slate-800",
@@ -377,6 +386,11 @@ export function ResumePreview({
             </div>
           ))}
         </div>
+        <div
+          className="cv-a4-guide-overlay print:hidden"
+          aria-hidden
+          title="Approximate A4 page breaks (297mm per sheet, 0 print margin in export)"
+        />
       </div>
     </div>
   );

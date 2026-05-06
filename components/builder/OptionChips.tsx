@@ -13,6 +13,10 @@ interface OptionChipsProps {
   onChange: (value: string) => void;
   isDark?: boolean;
   size?: "xs" | "sm";
+  /** Keep chips on one line (horizontal scroll inside parent if needed). */
+  nowrap?: boolean;
+  /** Shrink and ellipsis labels when space is tight (e.g. builder toolbar). */
+  truncateLabels?: boolean;
 }
 
 export function OptionChips({
@@ -21,9 +25,11 @@ export function OptionChips({
   onChange,
   isDark = false,
   size = "xs",
+  nowrap = false,
+  truncateLabels = false,
 }: OptionChipsProps) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className={cn("flex min-w-0 gap-1.5", nowrap ? "flex-nowrap" : "flex-wrap")}>
       {options.map((option) => (
         <button
           key={option.value}
@@ -31,6 +37,7 @@ export function OptionChips({
           onClick={() => onChange(option.value)}
           className={cn(
             "rounded border transition-colors",
+            truncateLabels ? "min-w-0 max-w-[6rem] shrink truncate" : "shrink-0",
             size === "xs" ? "px-2 py-1 text-xs" : "px-2.5 py-1.5 text-sm",
             value === option.value
               ? isDark
