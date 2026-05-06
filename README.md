@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# cv-gen
 
-## Getting Started
+Next.js CV/Resume sandbox with:
 
-First, run the development server:
+- JSON-first resume data model
+- Grid-based layout sandbox (1-col or 2-col with drag and drop sections)
+- Template switching (Modern, Classic, Minimal, WebDev)
+- Local persistence (`localStorage`)
+- Export: PDF (print), PNG, DOCX, JSON
+
+## Start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000` and you will be redirected to `/builder`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Main Routes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/builder` - 3-pane editor (forms/JSON, preview, layout sandbox)
+- `/templates` - template gallery and quick apply
 
-## Learn More
+## Data and State
 
-To learn more about Next.js, take a look at the following resources:
+- Resume schema: `lib/types.ts`
+- Sample resume: `lib/defaults.ts`
+- Store and persistence: `lib/store.ts` (`cv-gen:store:v1`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Export Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- PDF uses browser print styles in `app/globals.css` and prints `#print-root`
+- PNG uses `html-to-image`
+- DOCX is generated from resume data structure, not from visual template HTML

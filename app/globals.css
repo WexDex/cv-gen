@@ -24,3 +24,89 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.cv-project-window {
+  animation: cv-project-slide 220ms ease-out;
+}
+
+.cv-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #e2e8f0;
+}
+
+.cv-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.cv-scrollbar::-webkit-scrollbar-track {
+  background: #e2e8f0;
+  border-radius: 999px;
+}
+
+.cv-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+  border-radius: 999px;
+  border: 2px solid #e2e8f0;
+}
+
+.cv-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #64748b 0%, #475569 100%);
+}
+
+.cv-scrollbar-dark {
+  scrollbar-color: #3f3f46 #18181b;
+}
+
+.cv-scrollbar-dark::-webkit-scrollbar-track {
+  background: #18181b;
+}
+
+.cv-scrollbar-dark::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #52525b 0%, #3f3f46 100%);
+  border-color: #18181b;
+}
+
+.cv-scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #71717a 0%, #52525b 100%);
+}
+
+@keyframes cv-project-slide {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #print-root,
+  #print-root * {
+    visibility: visible;
+  }
+
+  #print-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
+  }
+}
