@@ -4,7 +4,7 @@
     "name": "ZENDOUH Abdelhamid CV",
     "createdAt": 1778102563940,
     "updatedAt": 1778103458000,
-    "language": "en"
+    "language": "fr"
   },
   "templateId": "webdev",
   "templateVariant": "dark",
@@ -56,7 +56,7 @@
         "column": "left",
         "order": 2,
         "visible": true,
-        "title": "Programming Languages",
+        "title": "Langages de Programmation",
         "display": "chips",
         "dataSlice": {
           "kind": "all"
@@ -79,7 +79,7 @@
         "column": "left",
         "order": 4,
         "visible": true,
-        "title": "Tools and DevOps",
+        "title": "Outils et DevOps",
         "dataSlice": {
           "kind": "all"
         }
@@ -169,10 +169,10 @@
   "data": {
     "personalInfo": {
       "name": "ZENDOUH Abdelhamid",
-      "title": "Full-Stack Developer",
+      "title": "Développeur Full-Stack",
       "email": "zendouhhamid@gmail.com",
       "phone": "0549799748",
-      "location": "Algeria, Skikda",
+      "location": "Algérie, Skikda",
       "contacts": [
         {
           "type": "email",
@@ -188,7 +188,7 @@
         },
         {
           "type": "location",
-          "value": "Algeria, Skikda (Willing to relocate)"
+          "value": "Algérie, Skikda (Mobile)"
         },
         {
           "type": "github",
@@ -198,42 +198,42 @@
       "linkedin": "https://www.linkedin.com/in/zendouh-abdel-hamid/",
       "github": "https://github.com/WexDex",
       "website": "",
-      "summary": "Full-stack developer focused on modern web technologies and building performant, scalable applications. Combines strong frontend and backend skills with problem-solving and adaptability, with a growing interest in game development."
+      "summary": "Développeur full-stack axé sur les technologies web modernes et la création d’applications performantes et évolutives. Combine de solides compétences frontend et backend avec la résolution de problèmes et l’adaptabilité, avec un intérêt croissant pour le développement de jeux."
     },
     "experience": [
       {
-        "company": "Mobile Top-Up Management Platform",
-        "position": "Web Developer",
-        "duration": "2024 - Present",
+        "company": "Plateforme de Gestion de Recharges Mobiles",
+        "position": "Développeur Web",
+        "duration": "2024 - Présent",
         "description": [
-          "Contributed to a large-scale platform for managing mobile top-up transactions and workflows",
-          "Built responsive interfaces, dashboards, and internal tools using Vue.js, Vite, and Tailwind CSS",
-          "Collaborated with the team to improve usability, reliability, and daily operational workflows",
-          "Assisted with backend logic, debugging, and problem-solving across the application"
+          "Contribution à une plateforme à grande échelle dédiée à la gestion des transactions et flux de recharges mobiles",
+          "Développement d’interfaces réactives, tableaux de bord et outils internes avec Vue.js, Vite et Tailwind CSS",
+          "Collaboration avec l’équipe afin d’améliorer l’ergonomie, la fiabilité et les flux opérationnels",
+          "Participation à la logique backend, au débogage et à la résolution de problèmes techniques"
         ]
       },
       {
-        "company": "E-commerce Platform (Freelance)",
-        "position": "Full-Stack Developer",
+        "company": "Plateforme E-commerce (Freelance)",
+        "position": "Développeur Full-Stack",
         "duration": "2023 - 2024",
         "description": [
-          "Designed and developed a full-stack e-commerce platform from scratch",
-          "Implemented authentication, checkout flow, admin dashboard, and product management systems",
-          "Developed advanced search/filtering features and integrated Google AdSense monetization",
-          "Handled the full application lifecycle from architecture to deployment under ecobrics.com"
+          "Conception et développement complet d’une plateforme e-commerce full-stack",
+          "Implémentation de l’authentification, du système de commande, du tableau de bord administrateur et de la gestion des produits",
+          "Développement de fonctionnalités avancées de recherche et filtrage ainsi que l’intégration de Google AdSense",
+          "Gestion complète du cycle de vie du projet, de l’architecture au déploiement sous ecobrics.com"
         ]
       }
     ],
     "education": [
       {
-        "institution": "University 20 August 1955, Skikda",
-        "degree": "Master’s Degree — Advanced Software and Applications Engineering",
+        "institution": "Université 20 Août 1955, Skikda",
+        "degree": "Master — Génie Logiciel Avancé et Applications",
         "duration": "2020 - 2022",
         "details": ""
       },
       {
-        "institution": "University 20 August 1955, Skikda",
-        "degree": "Bachelor’s Degree — Information Systems and Software Engineering",
+        "institution": "Université 20 Août 1955, Skikda",
+        "degree": "Licence — Ingénierie des Systèmes d'Information et Logiciel",
         "duration": "2017 - 2020",
         "details": ""
       }
@@ -279,8 +279,8 @@
     ],
     "projects": [
       {
-        "name": "Strategy Simulation & Decision Planner",
-        "description": "Open-source web app tool inspired by Slay the Spire for simplifying complex decision-making using node-based workflows.",
+        "name": "Simulateur Stratégique & Planificateur de Décisions",
+        "description": "Outil web open-source inspiré de Slay the Spire pour simplifier la prise de décision complexe via des workflows basés sur des nœuds.",
         "tech": [
           "Next.js",
           "React",
@@ -289,8 +289,8 @@
         "github": "https://github.com/WexDex/sts-planner-reworked"
       },
       {
-        "name": "Customizable CV/Resume Generator",
-        "description": "Fully customizable layouts resume builder with JSON structure and multi-format export (PDF, Word, PNG, JSON).",
+        "name": "Générateur de CV/Résumé Personnalisable",
+        "description": "Créateur de CV avec mises en page entièrement personnalisables, structure JSON et export multi-format (PDF, Word, PNG, JSON).",
         "tech": [
           "Next.js",
           "React",
@@ -300,8 +300,8 @@
         "link": "github.com/WexDex/cv-gen"
       },
       {
-        "name": "Debt Tracking & Client Management App",
-        "description": "Web and Mobile app for managing debts, clients, and transactions with backend synchronization support.",
+        "name": "Application de Gestion de Dettes et Clients",
+        "description": "Application web et mobile pour gérer les dettes, clients et transactions avec synchronisation backend.",
         "tech": [
           "Flutter",
           "Cloudflare",
@@ -313,16 +313,16 @@
     "certifications": [],
     "languages": [
       {
-        "language": "Arabic",
-        "proficiency": "Native"
+        "language": "Arabe",
+        "proficiency": "Langue maternelle"
       },
       {
-        "language": "English",
-        "proficiency": "Fluent"
+        "language": "Anglais",
+        "proficiency": "Courant"
       },
       {
-        "language": "French",
-        "proficiency": "Good"
+        "language": "Français",
+        "proficiency": "Bon niveau"
       }
     ],
     "awards": []
