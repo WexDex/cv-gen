@@ -1,12 +1,12 @@
 {
-  "id": "d7cd5704-59b3-4350-aa26-4a18d06a4716",
+  "id": "5dd9130f-b3a8-47d2-ae29-4e8f681edd3f",
   "meta": {
     "name": "ZENDOUH Abdelhamid CV",
-    "createdAt": 1778099372357,
-    "updatedAt": 1778101365100
+    "createdAt": 1778102563940,
+    "updatedAt": 1778103458000
   },
   "templateId": "webdev",
-  "templateVariant": "light",
+  "templateVariant": "dark",
   "layout": {
     "columns": "2col-left-sidebar",
     "sidebarWidthPct": 32,
@@ -279,7 +279,7 @@
     "projects": [
       {
         "name": "Strategy Simulation & Decision Planner",
-        "description": "Open-source web app inspired by Slay the Spire for simplifying complex decision-making using node-based workflows.",
+        "description": "Open-source web app tool inspired by Slay the Spire for simplifying complex decision-making using node-based workflows.",
         "tech": [
           "Next.js",
           "React",
@@ -289,17 +289,18 @@
       },
       {
         "name": "Customizable CV/Resume Generator",
-        "description": "Fully customizable resume builder with JSON structure and multi-format export (PDF, Word, PNG, JSON).",
+        "description": "Fully customizable layouts resume builder with JSON structure and multi-format export (PDF, Word, PNG, JSON).",
         "tech": [
           "Next.js",
           "React",
           "JavaScript"
         ],
-        "github": "https://github.com/WexDex/cv-gen"
+        "github": "https://wexdex.github.io/cv-gen/builder",
+        "link": "github.com/WexDex/cv-gen"
       },
       {
         "name": "Debt Tracking & Client Management App",
-        "description": "Mobile app for managing debts, clients, and transactions with backend synchronization support.",
+        "description": "Web and Mobile app for managing debts, clients, and transactions with backend synchronization support.",
         "tech": [
           "Flutter",
           "Cloudflare",
