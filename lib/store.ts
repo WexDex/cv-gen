@@ -4,12 +4,14 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 import { createBlankResume, createDefaultResume } from "@/lib/defaults";
+import { normalizeImportedResume } from "@/lib/normalizeResume";
 import { createId } from "@/lib/uuid";
 import type {
   ColumnId,
   LayoutMode,
   Resume,
   ResumeData,
+  ResumeMeta,
   SectionPlacement,
   SectionType,
   TemplateVariant,
@@ -26,6 +28,7 @@ type ResumeStore = {
   duplicateActiveResume: () => void;
   deleteResume: (id: string) => void;
   renameActiveResume: (name: string) => void;
+  setResumeLanguage: (language: string) => void;
   setTemplate: (templateId: TemplateId) => void;
   setTemplateVariant: (variant: TemplateVariant) => void;
   updateData: (data: ResumeData) => void;
@@ -39,7 +42,7 @@ type ResumeStore = {
   updateBlock: (sectionId: string, patch: Partial<SectionPlacement>) => void;
   moveSection: (sectionId: string, column: ColumnId, order: number) => void;
   reorderSection: (sectionId: string, order: number) => void;
-  setResumeFromJSON: (resume: Resume) => void;
+  setResumeFromJSON: (resume: unknown) => void;
   getActiveResume: () => Resume | undefined;
 };
 
@@ -122,6 +125,21 @@ export const useResumeStore = create<ResumeStore>()(
               ? touch({ ...resume, meta: { ...resume.meta, name: name.trim() || "Untitled Resume" } })
               : resume,
           ),
+        }));
+      },
+
+      setResumeLanguage: (language) => {
+        const trimmed = language.trim();
+        set((state) => ({
+          resumes: state.resumes.map((resume) => {
+            if (resume.id !== state.activeId) return resume;
+            if (!trimmed) {
+              const { language, ...metaRest } = resume.meta;
+              void language;
+              return touch({ ...resume, meta: metaRest as ResumeMeta });
+            }
+            return touch({ ...resume, meta: { ...resume.meta, language: trimmed } });
+          }),
         }));
       },
 
@@ -371,29 +389,12 @@ export const useResumeStore = create<ResumeStore>()(
 
       setResumeFromJSON: (resume) => {
         set((state) => {
-          const importedId = createId();
-          const normalizedResume: Resume = {
-            ...resume,
-            id: importedId,
-            meta: {
-              ...resume.meta,
-              createdAt: Date.now(),
-              updatedAt: Date.now(),
-            },
-            templateVariant: resume.templateVariant ?? (resume.templateId === "webdev" ? "dark" : "light"),
-            layout: {
-              ...resume.layout,
-              sections: resume.layout.sections.map((section) => ({
-                ...section,
-                id: createId(),
-                dataSlice: section.dataSlice ?? { kind: "all" },
-              })),
-            },
-          };
+          const normalizedResume = normalizeImportedResume(resume);
+          if (!normalizedResume) return state;
 
           return {
             resumes: [touch(normalizedResume), ...state.resumes],
-            activeId: importedId,
+            activeId: normalizedResume.id,
           };
         });
       },

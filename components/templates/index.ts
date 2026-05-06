@@ -20,8 +20,8 @@ export const getTemplateTheme = (templateId: TemplateId, variant: TemplateVarian
   templateThemes[templateId][variant] ?? templateThemes[templateId].light ?? templateThemes[templateId].dark!;
 
 export const templateList: Array<{ id: TemplateId; name: string; description: string }> = [
-  { id: "modern", name: "Modern", description: "Blue accent, clean hierarchy." },
+  // { id: "modern", name: "Modern", description: "Blue accent, clean hierarchy." },
   { id: "classic", name: "Classic", description: "Serif-heavy traditional style." },
-  { id: "minimal", name: "Minimal", description: "Neutral compact look." },
+  // { id: "minimal", name: "Minimal", description: "Neutral compact look." },
   { id: "webdev", name: "WebDev", description: "Dark code-like style for engineers." },
 ];

@@ -36,7 +36,7 @@ export function OptionChips({
           type="button"
           onClick={() => onChange(option.value)}
           className={cn(
-            "rounded border transition-colors",
+            "rounded border transition-colors cursor-pointer",
             truncateLabels ? "min-w-0 max-w-[6rem] shrink truncate" : "shrink-0",
             size === "xs" ? "px-2 py-1 text-xs" : "px-2.5 py-1.5 text-sm",
             value === option.value

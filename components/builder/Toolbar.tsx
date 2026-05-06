@@ -42,6 +42,7 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
   const duplicateActiveResume = useResumeStore((state) => state.duplicateActiveResume);
   const deleteResume = useResumeStore((state) => state.deleteResume);
   const renameActiveResume = useResumeStore((state) => state.renameActiveResume);
+  const setResumeLanguage = useResumeStore((state) => state.setResumeLanguage);
   const setTemplate = useResumeStore((state) => state.setTemplate);
   const setTemplateVariant = useResumeStore((state) => state.setTemplateVariant);
   const setResumeFromJSON = useResumeStore((state) => state.setResumeFromJSON);
@@ -110,14 +111,19 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
               <div key={activeResume.id} className="cv-project-window flex items-center gap-1">
                 {windowResumes.map((resume) => {
                   const isActive = resume.id === activeResume.id;
+                  const lang = resume.meta.language?.trim();
                   return (
                     <button
                       key={resume.id}
                       type="button"
-                      title={isActive ? "Current project" : `Open project ${resume.meta.name}`}
+                      title={
+                        isActive
+                          ? "Current project"
+                          : `Open project ${resume.meta.name}${lang ? ` (${lang})` : ""}`
+                      }
                       onClick={isActive ? undefined : () => setActiveResume(resume.id)}
                       className={cn(
-                        "max-w-[min(140px,18vw)] min-w-0 shrink truncate rounded border px-1.5 py-0.5 text-[11px]",
+                        "max-w-[min(160px,22vw)] min-w-0 shrink rounded border px-1.5 py-0.5 text-[11px]",
                         isActive
                           ? uiTheme === "dark"
                             ? "border-cyan-600 bg-cyan-700 text-white"
@@ -127,7 +133,23 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
                             : "bg-white text-zinc-600 opacity-75",
                       )}
                     >
-                      {resume.meta.name}
+                      <span className="flex min-w-0 max-w-full items-center gap-1">
+                        <span className="min-w-0 truncate">{resume.meta.name}</span>
+                        {lang ? (
+                          <span
+                            className={cn(
+                              "shrink-0 rounded-full border px-1 py-px text-[8px] font-semibold uppercase leading-none tracking-wide",
+                              isActive
+                                ? "border-white/35 bg-white/15 text-white"
+                                : uiTheme === "dark"
+                                  ? "border-zinc-600 bg-zinc-800 text-zinc-200"
+                                  : "border-zinc-200 bg-zinc-100 text-zinc-700",
+                            )}
+                          >
+                            {lang}
+                          </span>
+                        ) : null}
+                      </span>
                     </button>
                   );
                 })}
@@ -142,6 +164,25 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
               <ChevronRight size={14} />
             </button>
           </div>
+        </div>
+
+        <div className={panel("max-w-20 shrink-0")}>
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
+            Language
+          </p>
+          <input
+            type="text"
+            value={activeResume.meta.language ?? ""}
+            onChange={(event) => setResumeLanguage(event.target.value)}
+            placeholder="en"
+            autoComplete="off"
+            spellCheck={false}
+            title="Saved on resume metadata (export, future use)"
+            className={cn(
+              "w-full max-w-full rounded border px-1 py-0.5 text-[11px] outline-none",
+              uiTheme === "dark" ? "border-zinc-600 bg-zinc-900 text-zinc-100 placeholder:text-zinc-500" : "border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400",
+            )}
+          />
         </div>
 
         <div className={panel()}>

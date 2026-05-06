@@ -1,19 +1,7 @@
 import { saveAs } from "file-saver";
 
+import { normalizeImportedResume } from "@/lib/normalizeResume";
 import type { Resume } from "@/lib/types";
-
-const isResumeLike = (value: unknown): value is Resume => {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<Resume>;
-  return Boolean(
-    candidate.id &&
-      candidate.meta &&
-      candidate.layout &&
-      candidate.data &&
-      candidate.templateId &&
-      candidate.templateVariant,
-  );
-};
 
 export const exportResumeJson = (resume: Resume) => {
   const blob = new Blob([JSON.stringify(resume, null, 2)], {
@@ -24,9 +12,15 @@ export const exportResumeJson = (resume: Resume) => {
 
 export const parseResumeJson = async (file: File): Promise<Resume> => {
   const text = await file.text();
-  const parsed: unknown = JSON.parse(text);
-  if (!isResumeLike(parsed)) {
-    throw new Error("Invalid resume JSON structure.");
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error("Invalid JSON in file.");
   }
-  return parsed;
+  const normalized = normalizeImportedResume(parsed);
+  if (!normalized) {
+    throw new Error("Could not read a resume from this file.");
+  }
+  return normalized;
 };

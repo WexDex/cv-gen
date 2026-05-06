@@ -161,6 +161,8 @@ export interface ResumeMeta {
   name: string;
   createdAt: number;
   updatedAt: number;
+  /** Document / UI language tag for metadata and future export (e.g. en, fr, ar). */
+  language?: string;
 }
 
 export interface Resume {

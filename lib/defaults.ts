@@ -1,6 +1,35 @@
 import zendouhSeed from "@/public/zendouh-abdelhamid-cv.json";
 import { createId } from "@/lib/uuid";
-import type { Resume } from "@/lib/types";
+import type { Resume, ResumeData } from "@/lib/types";
+
+/** Safe empty `ResumeData` used when normalizing JSON and creating blank resumes. */
+export function getBlankResumeData(): ResumeData {
+  return {
+    personalInfo: {
+      name: "",
+      title: "",
+      email: "",
+      phone: "",
+      location: "",
+      contacts: [],
+      summary: "",
+    },
+    experience: [],
+    education: [],
+    programmingLanguages: [],
+    frameworks: [],
+    toolsDevOps: [],
+    databases: [],
+    projects: [],
+    openSource: [],
+    skills: [],
+    certifications: [],
+    languages: [],
+    awards: [],
+    volunteer: [],
+    custom: {},
+  };
+}
 
 export const createDefaultResume = (): Resume => {
   const base = structuredClone(zendouhSeed) as Resume;
@@ -46,29 +75,5 @@ export const createBlankResume = (): Resume => ({
       { id: createId(), type: "programmingLanguages", column: "left", order: 2, visible: true, dataSlice: { kind: "all" } },
     ],
   },
-  data: {
-    personalInfo: {
-      name: "",
-      title: "",
-      email: "",
-      phone: "",
-      location: "",
-      contacts: [],
-      summary: "",
-    },
-    experience: [],
-    education: [],
-    programmingLanguages: [],
-    frameworks: [],
-    toolsDevOps: [],
-    databases: [],
-    projects: [],
-    openSource: [],
-    skills: [],
-    certifications: [],
-    languages: [],
-    awards: [],
-    volunteer: [],
-    custom: {},
-  },
+  data: getBlankResumeData(),
 });

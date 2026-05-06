@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { JsonEditor } from "@/components/builder/JsonEditor";
 import { BlockSettings } from "@/components/builder/BlockSettings";
+import { BuilderErrorBoundary } from "@/components/builder/BuilderErrorBoundary";
 import { LayoutSandbox } from "@/components/builder/LayoutSandbox";
 import { SectionForms } from "@/components/builder/SectionForms";
 import { Toolbar } from "@/components/builder/Toolbar";
@@ -39,9 +40,11 @@ export default function BuilderPageClient() {
   }, [uiTheme]);
 
   const effectiveSelectedBlockId =
-    selectedBlockId && activeResume?.layout.sections.some((section) => section.id === selectedBlockId)
+    selectedBlockId && activeResume?.layout?.sections?.some((section) => section.id === selectedBlockId)
       ? selectedBlockId
       : null;
+
+  const errorResetKey = activeResume ? `${activeResume.id}:${activeResume.meta.updatedAt}` : "";
 
   return (
     <main
@@ -105,7 +108,13 @@ export default function BuilderPageClient() {
             </button>
           </div>
           <div className={cn("min-h-0 flex-1 overflow-auto cv-scrollbar", uiTheme === "dark" && "cv-scrollbar-dark")}>
-            {leftTab === "form" ? <SectionForms isDark={uiTheme === "dark"} /> : <JsonEditor isDark={uiTheme === "dark"} />}
+            {leftTab === "form" ? (
+              <BuilderErrorBoundary isDark={uiTheme === "dark"} title="Form editor" resetKey={errorResetKey}>
+                <SectionForms isDark={uiTheme === "dark"} />
+              </BuilderErrorBoundary>
+            ) : (
+              <JsonEditor isDark={uiTheme === "dark"} leftTab={leftTab} />
+            )}
           </div>
         </div>
         {activeResume ? (
@@ -115,19 +124,21 @@ export default function BuilderPageClient() {
               uiTheme === "dark" && "cv-scrollbar-dark",
             )}
           >
-            <ResumePreview
-              resume={activeResume}
-              previewRef={previewRef}
-              uiTheme={uiTheme}
-              selectedBlockId={effectiveSelectedBlockId}
-              onSelectBlock={(id) => {
-                setSelectedBlockId(id);
-                setRightTab("block");
-              }}
-              onToggleVisibility={toggleSectionVisibility}
-              onRemoveBlock={removeBlock}
-              onMoveBlock={moveSection}
-            />
+            <BuilderErrorBoundary isDark={uiTheme === "dark"} title="Preview" resetKey={errorResetKey}>
+              <ResumePreview
+                resume={activeResume}
+                previewRef={previewRef}
+                uiTheme={uiTheme}
+                selectedBlockId={effectiveSelectedBlockId}
+                onSelectBlock={(id) => {
+                  setSelectedBlockId(id);
+                  setRightTab("block");
+                }}
+                onToggleVisibility={toggleSectionVisibility}
+                onRemoveBlock={removeBlock}
+                onMoveBlock={moveSection}
+              />
+            </BuilderErrorBoundary>
           </div>
         ) : null}
         <div
@@ -173,16 +184,20 @@ export default function BuilderPageClient() {
           </div>
           <div className={cn("min-h-0 flex-1 overflow-auto cv-scrollbar", uiTheme === "dark" && "cv-scrollbar-dark")}>
             {rightTab === "layout" ? (
-              <LayoutSandbox
-                isDark={uiTheme === "dark"}
-                selectedBlockId={effectiveSelectedBlockId}
-                onSelectBlock={(id) => {
-                  setSelectedBlockId(id);
-                  setRightTab("block");
-                }}
-              />
+              <BuilderErrorBoundary isDark={uiTheme === "dark"} title="Layout" resetKey={errorResetKey}>
+                <LayoutSandbox
+                  isDark={uiTheme === "dark"}
+                  selectedBlockId={effectiveSelectedBlockId}
+                  onSelectBlock={(id) => {
+                    setSelectedBlockId(id);
+                    setRightTab("block");
+                  }}
+                />
+              </BuilderErrorBoundary>
             ) : (
-              <BlockSettings selectedBlockId={effectiveSelectedBlockId} isDark={uiTheme === "dark"} />
+              <BuilderErrorBoundary isDark={uiTheme === "dark"} title="Block settings" resetKey={errorResetKey}>
+                <BlockSettings selectedBlockId={effectiveSelectedBlockId} isDark={uiTheme === "dark"} />
+              </BuilderErrorBoundary>
             )}
           </div>
         </div>
