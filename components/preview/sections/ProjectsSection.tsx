@@ -20,16 +20,19 @@ export function ProjectsSection({
   display = "cards",
   blockStyle,
 }: ProjectsSectionProps) {
+  const sepCls = theme.itemSeparatorClassName !== undefined
+    ? theme.itemSeparatorClassName
+    : cn("border-b last:border-none", theme.dividerClassName);
+
   return (
     <SectionShell title={title} theme={theme} blockStyle={blockStyle}>
       {items.map((item, index) => (
         <article
           key={`${item.name}-${index}`}
           className={cn(
-            "cv-print-subblock pb-2 border-b last:border-none",
-            display === "cards" && "rounded-md border p-2 mb-2",
+            "cv-print-subblock pb-2",
+            display === "cards" ? cn("rounded-md border p-2 mb-2", theme.dividerClassName) : sepCls,
             display === "compact" && "pb-1",
-            theme.dividerClassName,
           )}
         >
           <div className="flex items-start justify-between gap-3">

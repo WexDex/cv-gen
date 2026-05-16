@@ -250,6 +250,9 @@ body {
     height: auto !important;
     max-height: none !important;
     overflow: visible !important;
+    /* Block display lets the browser fragment columns independently rather than
+       treating the entire grid row as one unfragmentable unit */
+    display: block !important;
     break-inside: auto;
     page-break-inside: auto;
   }
@@ -280,9 +283,11 @@ body {
     display: none !important;
   }
 
-  /* Preview-only snap / guides must not affect printed/PDF output */
+  /* Convert on-screen snap margins into real PDF page breaks */
   [data-cv-preview-snap] {
     margin-top: 0 !important;
+    break-before: page !important;
+    page-break-before: always !important;
   }
 
   [data-cv-preview-snap],

@@ -65,7 +65,8 @@ export function SectionShell({ title, theme, blockStyle, children }: SectionShel
   return (
     <section
       className={cn(
-        "cv-print-section mb-5",
+        "cv-print-section",
+        theme.sectionGapClassName ?? "mb-5",
         theme.contentClassName,
         fontClassMap[blockStyle?.fontStyle ?? "default"],
         useCustomPadding ? "" : paddingClassMap[preset],

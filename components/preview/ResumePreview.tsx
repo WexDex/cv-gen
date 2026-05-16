@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
+<<<<<<< Updated upstream
 import { ArrowLeft, ArrowRight, ChevronDown, ChevronUp, Eye, EyeOff, Trash2 } from "lucide-react";
+=======
+import { ArrowLeft, ArrowRight, Eye, EyeOff, Trash2 } from "lucide-react";
+>>>>>>> Stashed changes
 
-import { getTemplateTheme } from "@/components/templates";
+import { resolveTemplateTheme } from "@/components/templates";
+import { useTemplateStore } from "@/lib/templateStore";
 import { BadgeListSection } from "@/components/preview/sections/BadgeListSection";
 import { EducationSection } from "@/components/preview/sections/EducationSection";
 import { ExperienceSection } from "@/components/preview/sections/ExperienceSection";
@@ -27,6 +32,8 @@ interface ResumePreviewProps {
   onReorderBlock?: (id: string, dir: "up" | "down") => void;
   showSpacing?: boolean;
   uiTheme?: "light" | "dark";
+  /** When provided, bypasses the store and uses this theme directly (used in admin preview). */
+  themeOverride?: import("@/components/templates/theme").TemplateTheme;
 }
 
 const defaultTitleMap: Partial<Record<SectionPlacement["type"], string>> = {
@@ -60,10 +67,23 @@ export function ResumePreview({
   onReorderBlock,
   showSpacing = false,
   uiTheme = "light",
+  themeOverride,
 }: ResumePreviewProps) {
-  const theme = getTemplateTheme(resume.templateId, resume.templateVariant ?? "light");
+  const customTemplates = useTemplateStore((state) => state.customTemplates);
+  const theme = themeOverride ?? resolveTemplateTheme(resume.templateId, resume.templateVariant ?? "light", customTemplates);
   const visibleSections = resume.layout.sections.filter((section) => section.visible);
   const isPreviewDark = resume.templateVariant === "dark";
+
+  useEffect(() => {
+    if (!theme.fontUrl) return;
+    const id = `cv-font-${theme.id}`;
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = theme.fontUrl;
+    document.head.appendChild(link);
+  }, [theme.fontUrl, theme.id]);
 
   useA4PreviewPageSnap(previewRef, resume);
 
@@ -287,7 +307,11 @@ export function ResumePreview({
       <div
         id="print-root"
         ref={previewRef}
+<<<<<<< Updated upstream
         data-show-spacing={showSpacing ? "" : undefined}
+=======
+        style={theme.fontFamily ? { fontFamily: theme.fontFamily } : undefined}
+>>>>>>> Stashed changes
         className={cn(
           "relative mx-auto min-h-[297mm] w-[210mm] max-w-full overflow-hidden border border-zinc-200 shadow-lg print:min-h-0 print:overflow-visible print:shadow-none print:border-none",
           theme.rootClassName,

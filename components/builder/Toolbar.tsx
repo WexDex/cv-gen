@@ -22,6 +22,7 @@ import { OptionChips } from "@/components/builder/OptionChips";
 
 import { templateList } from "@/components/templates";
 import { templateThemes } from "@/components/templates";
+import { useTemplateStore } from "@/lib/templateStore";
 import { useResumeStore } from "@/lib/store";
 import { exportAsDocx } from "@/lib/export/docx";
 import { exportAsPng } from "@/lib/export/png";
@@ -59,6 +60,12 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme, showSpacing = fals
   const setTemplateVariant = useResumeStore((state) => state.setTemplateVariant);
   const setResumeFromJSON = useResumeStore((state) => state.setResumeFromJSON);
   const setFontOverride = useResumeStore((state) => state.setFontOverride);
+
+  const customTemplates = useTemplateStore((state) => state.customTemplates);
+  const allTemplateOptions = [
+    ...templateList.map((t) => ({ value: t.id, label: t.name })),
+    ...customTemplates.map((t) => ({ value: t.id, label: t.name })),
+  ];
 
   if (!activeResume) return null;
   if (resumes.length === 0) return null;
@@ -253,7 +260,7 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme, showSpacing = fals
             Template Selection
           </p>
           <OptionChips
-            options={templateList.map((template) => ({ value: template.id, label: template.name }))}
+            options={allTemplateOptions}
             value={activeResume.templateId}
             onChange={(value) => setTemplate(value as typeof activeResume.templateId)}
             isDark={uiTheme === "dark"}
@@ -267,7 +274,7 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme, showSpacing = fals
           <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
             Preview Theme
           </p>
-          {templateThemes[activeResume.templateId].light && templateThemes[activeResume.templateId].dark ? (
+          {templateThemes[activeResume.templateId as import("@/lib/types").BuiltInTemplateId]?.light && templateThemes[activeResume.templateId as import("@/lib/types").BuiltInTemplateId]?.dark ? (
             <div className={cn("inline-flex rounded border p-0.5", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-zinc-100")}>
               {(["light", "dark"] as const).map((variant) => (
                 <button
@@ -461,6 +468,24 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme, showSpacing = fals
             JSON file
             <input className="hidden" type="file" accept=".json,application/json" onChange={handleImport} />
           </label>
+        </div>
+
+        <div
+          className={cn(
+            "shrink-0 rounded border p-1.5",
+            uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50",
+          )}
+        >
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
+            Admin
+          </p>
+          <Link
+            href="/admin"
+            className={cn(tightBtn)}
+            title="Open template editor"
+          >
+            Templates
+          </Link>
         </div>
       </div>
     </div>

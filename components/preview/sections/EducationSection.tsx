@@ -20,15 +20,19 @@ export function EducationSection({
   display = "list",
   blockStyle,
 }: EducationSectionProps) {
+  const sepCls = theme.itemSeparatorClassName !== undefined
+    ? theme.itemSeparatorClassName
+    : cn("border-b last:border-none", theme.dividerClassName);
+
   return (
     <SectionShell title={title} theme={theme} blockStyle={blockStyle}>
       {items.map((item, index) => (
         <article
           key={`${item.institution}-${index}`}
           className={cn(
-            "cv-print-subblock pb-2 border-b last:border-none",
+            "cv-print-subblock pb-2",
+            sepCls,
             display === "compact" && "pb-1",
-            theme.dividerClassName,
           )}
         >
           <div className="flex items-start justify-between gap-3">

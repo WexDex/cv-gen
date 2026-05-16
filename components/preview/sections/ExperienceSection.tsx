@@ -20,16 +20,20 @@ export function ExperienceSection({
   display = "list",
   blockStyle,
 }: ExperienceSectionProps) {
+  const sepCls = theme.itemSeparatorClassName !== undefined
+    ? theme.itemSeparatorClassName
+    : cn("border-b last:border-none", theme.dividerClassName);
+
   return (
     <SectionShell title={title} theme={theme} blockStyle={blockStyle}>
       {items.map((item, index) => (
         <article
           key={`${item.company}-${index}`}
           className={cn(
-            "cv-print-subblock pb-2 border-b last:border-none",
+            "cv-print-subblock pb-2",
+            sepCls,
             display === "timeline" && "relative pl-4 before:absolute before:left-0 before:top-2 before:h-full before:w-px before:bg-current/30",
             display === "compact" && "pb-1",
-            theme.dividerClassName,
           )}
         >
           <div className="flex items-start justify-between gap-3">

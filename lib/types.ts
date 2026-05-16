@@ -2,7 +2,9 @@ export type ColumnId = "full" | "left" | "right";
 
 export type LayoutMode = "1col" | "2col-left-sidebar" | "2col-right-sidebar";
 
-export type TemplateId = "modern" | "classic" | "minimal" | "webdev";
+export type BuiltInTemplateId = "modern" | "classic" | "minimal" | "webdev";
+/** Allows custom template IDs stored in localStorage while still autocompleting built-in ones. */
+export type TemplateId = BuiltInTemplateId | (string & {});
 export type TemplateVariant = "light" | "dark";
 
 export type BlockFontStyle = "default" | "mono" | "serif";
