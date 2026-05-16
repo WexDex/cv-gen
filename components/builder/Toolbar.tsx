@@ -12,6 +12,7 @@ import {
   FileText,
   Image as ImageIcon,
   Moon,
+  Ruler,
   Sun,
   Trash2,
   Upload,
@@ -27,13 +28,24 @@ import { exportAsPng } from "@/lib/export/png";
 import { exportAsPrint, openA4Preview } from "@/lib/export/print";
 import { exportResumeJson, parseResumeJson } from "@/lib/export/json";
 
+const FONT_PRESETS = [
+  { label: "Default", fontFamily: "", fontUrl: "" },
+  { label: "Roboto", fontFamily: "Roboto", fontUrl: "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" },
+  { label: "Inter", fontFamily: "Inter", fontUrl: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" },
+  { label: "Lato", fontFamily: "Lato", fontUrl: "https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" },
+  { label: "Montserrat", fontFamily: "Montserrat", fontUrl: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" },
+  { label: "Merriweather", fontFamily: "Merriweather", fontUrl: "https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" },
+];
+
 interface ToolbarProps {
   previewRef: React.RefObject<HTMLDivElement | null>;
   uiTheme: "light" | "dark";
   onToggleTheme: () => void;
+  showSpacing?: boolean;
+  onToggleSpacing?: () => void;
 }
 
-export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
+export function Toolbar({ previewRef, uiTheme, onToggleTheme, showSpacing = false, onToggleSpacing }: ToolbarProps) {
   const activeResume = useResumeStore((state) => state.getActiveResume());
   const resumes = useResumeStore((state) => state.resumes);
   const activeId = useResumeStore((state) => state.activeId);
@@ -46,9 +58,20 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
   const setTemplate = useResumeStore((state) => state.setTemplate);
   const setTemplateVariant = useResumeStore((state) => state.setTemplateVariant);
   const setResumeFromJSON = useResumeStore((state) => state.setResumeFromJSON);
+  const setFontOverride = useResumeStore((state) => state.setFontOverride);
 
   if (!activeResume) return null;
   if (resumes.length === 0) return null;
+
+  const atsChecks = [
+    { label: "Name", pass: Boolean(activeResume.data.personalInfo.name?.trim()) },
+    { label: "Email", pass: Boolean(activeResume.data.personalInfo.contacts?.some((c) => c.type === "email" && c.value?.trim()) || activeResume.data.personalInfo.email?.trim()) },
+    { label: "Phone", pass: Boolean(activeResume.data.personalInfo.contacts?.some((c) => c.type === "phone" && c.value?.trim()) || activeResume.data.personalInfo.phone?.trim()) },
+    { label: "Experience", pass: activeResume.data.experience.length > 0 },
+    { label: "Education", pass: activeResume.data.education.length > 0 },
+    { label: "Text template", pass: activeResume.templateId !== "webdev" },
+  ];
+  const atsScore = atsChecks.filter((c) => c.pass).length;
   const activeIndex = resumes.findIndex((item) => item.id === activeId);
   const prevResume = resumes[(activeIndex - 1 + resumes.length) % resumes.length];
   const nextResume = resumes[(activeIndex + 1) % resumes.length];
@@ -288,6 +311,82 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme }: ToolbarProps) {
             {uiTheme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
             {uiTheme === "dark" ? "Light UI" : "Dark UI"}
           </button>
+        </div>
+
+        <div className={panel("shrink-0")}>
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
+            Font
+          </p>
+          <select
+            className={cn(
+              "rounded border px-1 py-0.5 text-[11px] outline-none",
+              uiTheme === "dark" ? "border-zinc-600 bg-zinc-900 text-zinc-100 [color-scheme:dark]" : "border-zinc-300 bg-white",
+            )}
+            value={activeResume.fontOverride?.fontFamily ?? ""}
+            onChange={(event) => {
+              const preset = FONT_PRESETS.find((p) => p.fontFamily === event.target.value);
+              if (!preset || !preset.fontFamily) {
+                setFontOverride(null);
+              } else {
+                setFontOverride({ fontFamily: preset.fontFamily, fontUrl: preset.fontUrl });
+              }
+            }}
+          >
+            {FONT_PRESETS.map((preset) => (
+              <option key={preset.label} value={preset.fontFamily}>{preset.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className={panel("shrink-0")}>
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
+            Spacing
+          </p>
+          <button
+            title="Toggle spacing overlay"
+            type="button"
+            onClick={onToggleSpacing}
+            className={cn(
+              "inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-[11px]",
+              showSpacing
+                ? uiTheme === "dark" ? "border-cyan-600 bg-cyan-700 text-white" : "border-blue-500 bg-blue-600 text-white"
+                : uiTheme === "dark" ? "border-zinc-700 bg-zinc-900 text-zinc-100" : "bg-white",
+            )}
+          >
+            <Ruler size={12} />
+            Overlay
+          </button>
+        </div>
+
+        <div className={panel("shrink-0")}>
+          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
+            ATS
+          </p>
+          <div className="group relative">
+            <button
+              type="button"
+              title="ATS readiness score"
+              className={cn(
+                "inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-[11px] font-medium",
+                atsScore === 6
+                  ? "border-green-500 bg-green-600 text-white"
+                  : "border-amber-500 bg-amber-500 text-white",
+              )}
+            >
+              {atsScore === 6 ? `✓ ATS Ready` : `ATS ${atsScore}/6`}
+            </button>
+            <div className={cn(
+              "absolute right-0 top-full z-30 mt-1 hidden min-w-[160px] rounded border p-2 shadow-lg group-hover:block",
+              uiTheme === "dark" ? "border-zinc-700 bg-zinc-900 text-zinc-100" : "border-zinc-200 bg-white text-zinc-800",
+            )}>
+              {atsChecks.map((check) => (
+                <div key={check.label} className="flex items-center gap-1.5 py-0.5 text-[11px]">
+                  <span className={check.pass ? "text-green-500" : "text-red-500"}>{check.pass ? "✓" : "✗"}</span>
+                  {check.label}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 

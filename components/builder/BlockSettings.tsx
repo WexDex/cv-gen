@@ -1,11 +1,29 @@
 "use client";
 
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical } from "lucide-react";
+
 import { displayOptionsByType } from "@/lib/blockOptions";
 import { useResumeStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import type { BlockEdgeInsets, BlockStyle } from "@/lib/types";
 import { OptionChips } from "@/components/builder/OptionChips";
 import { ColorHexField } from "@/components/builder/ColorHexField";
+import { BoxModelEditor } from "@/components/builder/BoxModelEditor";
 
 interface BlockSettingsProps {
   selectedBlockId: string | null;
@@ -66,10 +84,42 @@ function hasSpacingOverrides(style?: BlockStyle): boolean {
   return false;
 }
 
+interface SortableItemProps {
+  id: string;
+  label: string;
+  checked: boolean;
+  onToggle: () => void;
+  isDark: boolean;
+}
+
+function SortableItem({ id, label, checked, onToggle, isDark }: SortableItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "flex items-center gap-2 rounded border px-2 py-1 text-xs",
+        isDark ? "border-zinc-700 bg-zinc-800" : "border-zinc-200 bg-white",
+      )}
+    >
+      <button type="button" {...attributes} {...listeners} className="cursor-grab text-zinc-400 active:cursor-grabbing">
+        <GripVertical size={12} />
+      </button>
+      <input type="checkbox" checked={checked} onChange={onToggle} />
+      <span className="truncate">{label}</span>
+    </div>
+  );
+}
+
 export function BlockSettings({ selectedBlockId, isDark = false }: BlockSettingsProps) {
   const activeResume = useResumeStore((state) => state.getActiveResume());
   const updateBlock = useResumeStore((state) => state.updateBlock);
   const updateData = useResumeStore((state) => state.updateData);
+  const reorderBlockItems = useResumeStore((state) => state.reorderBlockItems);
+  const setBlockItemVisibility = useResumeStore((state) => state.setBlockItemVisibility);
+  const sensors = useSensors(useSensor(PointerSensor));
 
   if (!activeResume || !selectedBlockId) {
     return (
@@ -93,6 +143,15 @@ export function BlockSettings({ selectedBlockId, isDark = false }: BlockSettings
   const canSlice = Array.isArray(dataValue);
   const displayOptions = displayOptionsByType[block.type] ?? [];
   const selectedIndexes = block.dataSlice?.indexes ?? [];
+  const itemOrder = block.dataSlice?.order ?? (Array.isArray(dataValue) ? (dataValue as unknown[]).map((_, i) => i) : []);
+  const orderedItems: { originalIndex: number; item: unknown }[] = itemOrder
+    .map((originalIndex) => ({ originalIndex, item: (dataValue as unknown[])?.[originalIndex] }))
+    .filter((entry) => entry.item !== undefined);
+  if (Array.isArray(dataValue)) {
+    (dataValue as unknown[]).forEach((item, i) => {
+      if (!itemOrder.includes(i)) orderedItems.push({ originalIndex: i, item });
+    });
+  }
 
   return (
     <div className="space-y-3 p-3">
@@ -229,58 +288,28 @@ export function BlockSettings({ selectedBlockId, isDark = false }: BlockSettings
             Margin and padding are in pixels. Leave a field empty to use the default for that side. Padding preset (sm / md / lg) still applies for any side you leave blank.
           </p>
           <div className="grid gap-3 text-xs">
-            <div className="space-y-1">
-              <span className="text-zinc-600 dark:text-zinc-400">Margin</span>
-              <div className="grid grid-cols-4 gap-1.5">
-                {(["top", "right", "bottom", "left"] as const).map((side) => (
-                  <label key={side} className="space-y-0.5">
-                    <span className="text-[10px] uppercase text-zinc-500">{side[0]}</span>
-                    <input
-                      type="number"
-                      className={cn(
-                        "w-full min-w-0 rounded border px-1 py-0.5 text-xs",
-                        isDark ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "",
-                      )}
-                      placeholder="—"
-                      value={block.style?.margin?.[side] ?? ""}
-                      onChange={(event) => {
-                        const nextMargin = patchEdgeInsets(block.style?.margin, side, event.target.value);
-                        const style = { ...block.style };
-                        if (nextMargin === undefined) delete style.margin;
-                        else style.margin = nextMargin;
-                        updateBlock(block.id, { style: Object.keys(style).length > 0 ? style : undefined });
-                      }}
-                    />
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-1">
-              <span className="text-zinc-600 dark:text-zinc-400">Padding</span>
-              <div className="grid grid-cols-4 gap-1.5">
-                {(["top", "right", "bottom", "left"] as const).map((side) => (
-                  <label key={side} className="space-y-0.5">
-                    <span className="text-[10px] uppercase text-zinc-500">{side[0]}</span>
-                    <input
-                      type="number"
-                      className={cn(
-                        "w-full min-w-0 rounded border px-1 py-0.5 text-xs",
-                        isDark ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "",
-                      )}
-                      placeholder="—"
-                      value={block.style?.paddingInset?.[side] ?? ""}
-                      onChange={(event) => {
-                        const nextPad = patchEdgeInsets(block.style?.paddingInset, side, event.target.value);
-                        const style = { ...block.style };
-                        if (nextPad === undefined) delete style.paddingInset;
-                        else style.paddingInset = nextPad;
-                        updateBlock(block.id, { style: Object.keys(style).length > 0 ? style : undefined });
-                      }}
-                    />
-                  </label>
-                ))}
-              </div>
-            </div>
+            <BoxModelEditor
+              label="Margin"
+              value={block.style?.margin}
+              isDark={isDark}
+              onChange={(nextMargin) => {
+                const style = { ...block.style };
+                if (nextMargin === undefined) delete style.margin;
+                else style.margin = nextMargin;
+                updateBlock(block.id, { style: Object.keys(style).length > 0 ? style : undefined });
+              }}
+            />
+            <BoxModelEditor
+              label="Padding"
+              value={block.style?.paddingInset}
+              isDark={isDark}
+              onChange={(nextPad) => {
+                const style = { ...block.style };
+                if (nextPad === undefined) delete style.paddingInset;
+                else style.paddingInset = nextPad;
+                updateBlock(block.id, { style: Object.keys(style).length > 0 ? style : undefined });
+              }}
+            />
             <label className="block space-y-1">
               <span className="text-zinc-600 dark:text-zinc-400">Line height (unitless)</span>
               <input
@@ -330,23 +359,34 @@ export function BlockSettings({ selectedBlockId, isDark = false }: BlockSettings
             </label>
           </div>
           {block.dataSlice?.kind === "indexes" ? (
-            <div className="max-h-40 space-y-1 overflow-auto border rounded p-2">
-              {(dataValue as unknown[]).map((item, index) => (
-                <label key={index} className="flex items-center gap-2 text-xs">
-                  <input
-                    type="checkbox"
-                    checked={selectedIndexes.includes(index)}
-                    onChange={(event) => {
-                      const next = event.target.checked
-                        ? [...selectedIndexes, index]
-                        : selectedIndexes.filter((current) => current !== index);
-                      updateBlock(block.id, { dataSlice: { kind: "indexes", indexes: next } });
-                    }}
-                  />
-                  {makeItemLabel(item, index)}
-                </label>
-              ))}
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(event: DragEndEvent) => {
+                const { active, over } = event;
+                if (!over || active.id === over.id) return;
+                const oldIdx = orderedItems.findIndex((e) => String(e.originalIndex) === active.id);
+                const newIdx = orderedItems.findIndex((e) => String(e.originalIndex) === over.id);
+                if (oldIdx === -1 || newIdx === -1) return;
+                const reordered = arrayMove(orderedItems, oldIdx, newIdx);
+                reorderBlockItems(block.id, reordered.map((e) => e.originalIndex));
+              }}
+            >
+              <SortableContext items={orderedItems.map((e) => String(e.originalIndex))} strategy={verticalListSortingStrategy}>
+                <div className="max-h-48 space-y-1 overflow-auto rounded border p-2">
+                  {orderedItems.map(({ originalIndex, item }) => (
+                    <SortableItem
+                      key={originalIndex}
+                      id={String(originalIndex)}
+                      label={makeItemLabel(item, originalIndex)}
+                      checked={selectedIndexes.includes(originalIndex)}
+                      onToggle={() => setBlockItemVisibility(block.id, originalIndex, !selectedIndexes.includes(originalIndex))}
+                      isDark={isDark}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           ) : null}
         </div>
       ) : null}

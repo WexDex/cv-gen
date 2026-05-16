@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Eye, EyeOff, Trash2 } from "lucide-react";
+import { useEffect } from "react";
+import { ArrowLeft, ArrowRight, ChevronDown, ChevronUp, Eye, EyeOff, Trash2 } from "lucide-react";
 
 import { getTemplateTheme } from "@/components/templates";
 import { BadgeListSection } from "@/components/preview/sections/BadgeListSection";
@@ -23,6 +24,8 @@ interface ResumePreviewProps {
   onToggleVisibility?: (id: string) => void;
   onRemoveBlock?: (id: string) => void;
   onMoveBlock?: (id: string, column: ColumnId, order: number) => void;
+  onReorderBlock?: (id: string, dir: "up" | "down") => void;
+  showSpacing?: boolean;
   uiTheme?: "light" | "dark";
 }
 
@@ -54,6 +57,8 @@ export function ResumePreview({
   onToggleVisibility,
   onRemoveBlock,
   onMoveBlock,
+  onReorderBlock,
+  showSpacing = false,
   uiTheme = "light",
 }: ResumePreviewProps) {
   const theme = getTemplateTheme(resume.templateId, resume.templateVariant ?? "light");
@@ -62,10 +67,35 @@ export function ResumePreview({
 
   useA4PreviewPageSnap(previewRef, resume);
 
+  useEffect(() => {
+    if (!resume.fontOverride?.fontUrl) return;
+    const existing = document.querySelector(`link[data-cv-font="${resume.fontOverride.fontFamily}"]`);
+    if (existing) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = resume.fontOverride.fontUrl;
+    link.setAttribute("data-cv-font", resume.fontOverride.fontFamily);
+    document.head.appendChild(link);
+  }, [resume.fontOverride]);
+
   const applySlice = <T,>(items: T[], section: SectionPlacement): T[] => {
     if (!section.dataSlice || section.dataSlice.kind === "all") return items;
-    const indexes = section.dataSlice.indexes ?? [];
-    return indexes.map((index) => items[index]).filter(Boolean);
+    const { order, indexes } = section.dataSlice;
+    const indexSet = indexes ? new Set(indexes) : null;
+
+    if (order) {
+      // Display items in the user-specified order, filtered by visible indexes
+      return order
+        .filter((originalIdx) => !indexSet || indexSet.has(originalIdx))
+        .map((originalIdx) => items[originalIdx])
+        .filter((item): item is T => item !== undefined);
+    }
+
+    if (indexSet) {
+      return items.filter((_, i) => indexSet.has(i));
+    }
+
+    return items;
   };
 
   const renderSection = (section: SectionPlacement) => {
@@ -257,10 +287,12 @@ export function ResumePreview({
       <div
         id="print-root"
         ref={previewRef}
+        data-show-spacing={showSpacing ? "" : undefined}
         className={cn(
           "relative mx-auto min-h-[297mm] w-[210mm] max-w-full overflow-hidden border border-zinc-200 shadow-lg print:min-h-0 print:overflow-visible print:shadow-none print:border-none",
           theme.rootClassName,
         )}
+        style={resume.fontOverride?.fontFamily ? { fontFamily: resume.fontOverride.fontFamily } : undefined}
       >
         <div
           className="cv-resume-sheet-inner relative z-0 grid min-h-[297mm] print:min-h-0 print:items-start print:content-start"
@@ -277,7 +309,7 @@ export function ResumePreview({
                 column === "right" && theme.contentClassName,
               )}
             >
-              {sortByOrder(visibleSections.filter((section) => section.column === column)).map((section) => (
+              {sortByOrder(visibleSections.filter((section) => section.column === column)).map((section, sectionIdx, colSections) => (
                 <div
                   key={section.id}
                   onClick={(event) => {
@@ -318,6 +350,38 @@ export function ResumePreview({
                     >
                       {section.visible ? <Eye size={11} /> : <EyeOff size={11} />}
                       visible
+                    </button>
+                    <button
+                      type="button"
+                      disabled={sectionIdx === 0}
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded border px-1 py-0.5 disabled:opacity-40",
+                        isPreviewDark
+                          ? "border-slate-700 hover:bg-slate-800"
+                          : "border-slate-300 hover:bg-zinc-100",
+                      )}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onReorderBlock?.(section.id, "up");
+                      }}
+                    >
+                      <ChevronUp size={11} />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={sectionIdx === colSections.length - 1}
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded border px-1 py-0.5 disabled:opacity-40",
+                        isPreviewDark
+                          ? "border-slate-700 hover:bg-slate-800"
+                          : "border-slate-300 hover:bg-zinc-100",
+                      )}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onReorderBlock?.(section.id, "down");
+                      }}
+                    >
+                      <ChevronDown size={11} />
                     </button>
                     {resume.layout.columns !== "1col" && section.column !== "left" ? (
                       <button

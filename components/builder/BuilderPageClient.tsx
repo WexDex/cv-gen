@@ -20,10 +20,12 @@ export default function BuilderPageClient() {
   const toggleSectionVisibility = useResumeStore((state) => state.toggleSectionVisibility);
   const removeBlock = useResumeStore((state) => state.removeBlock);
   const moveSection = useResumeStore((state) => state.moveSection);
+  const reorderSection = useResumeStore((state) => state.reorderSection);
   const [leftTab, setLeftTab] = useState<LeftTab>("form");
   const [rightTab, setRightTab] = useState<RightTab>("layout");
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [uiTheme, setUiTheme] = useState<"light" | "dark">("light");
+  const [showSpacing, setShowSpacing] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -44,6 +46,10 @@ export default function BuilderPageClient() {
       ? selectedBlockId
       : null;
 
+  const selectedSectionType = effectiveSelectedBlockId
+    ? activeResume?.layout?.sections?.find((s) => s.id === effectiveSelectedBlockId)?.type ?? null
+    : null;
+
   const errorResetKey = activeResume ? `${activeResume.id}:${activeResume.meta.updatedAt}` : "";
 
   return (
@@ -63,6 +69,8 @@ export default function BuilderPageClient() {
           previewRef={previewRef}
           uiTheme={uiTheme}
           onToggleTheme={() => setUiTheme((prev) => (prev === "light" ? "dark" : "light"))}
+          showSpacing={showSpacing}
+          onToggleSpacing={() => setShowSpacing((prev) => !prev)}
         />
       </div>
       <div className="cv-builder-grid grid min-h-0 flex-1 gap-0 overflow-hidden xl:grid-cols-[25%_50%_25%]">
@@ -110,7 +118,7 @@ export default function BuilderPageClient() {
           <div className={cn("min-h-0 flex-1 overflow-auto cv-scrollbar", uiTheme === "dark" && "cv-scrollbar-dark")}>
             {leftTab === "form" ? (
               <BuilderErrorBoundary isDark={uiTheme === "dark"} title="Form editor" resetKey={errorResetKey}>
-                <SectionForms isDark={uiTheme === "dark"} />
+                <SectionForms isDark={uiTheme === "dark"} selectedSectionType={selectedSectionType} />
               </BuilderErrorBoundary>
             ) : (
               <JsonEditor isDark={uiTheme === "dark"} leftTab={leftTab} />
@@ -129,6 +137,7 @@ export default function BuilderPageClient() {
                 resume={activeResume}
                 previewRef={previewRef}
                 uiTheme={uiTheme}
+                showSpacing={showSpacing}
                 selectedBlockId={effectiveSelectedBlockId}
                 onSelectBlock={(id) => {
                   setSelectedBlockId(id);
@@ -137,6 +146,11 @@ export default function BuilderPageClient() {
                 onToggleVisibility={toggleSectionVisibility}
                 onRemoveBlock={removeBlock}
                 onMoveBlock={moveSection}
+                onReorderBlock={(id, dir) => {
+                  const section = activeResume.layout.sections.find((s) => s.id === id);
+                  if (!section) return;
+                  reorderSection(id, section.order + (dir === "up" ? -1 : 1));
+                }}
               />
             </BuilderErrorBoundary>
           </div>

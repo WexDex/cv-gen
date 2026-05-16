@@ -46,7 +46,7 @@ export function HeaderSection({ info, theme, params, blockStyle }: HeaderSection
           <span key={`${item.type}-${item.value}-${index}`} className="inline-flex items-center gap-1">
             {getContactIcon(item.type)}
             {isLinkLikeContact(item.type) ? (
-              <a href={item.value.startsWith("http") ? item.value : `https://${item.value}`} target="_blank" rel="noreferrer" className={theme.linkClassName}>
+              <a href={item.value.startsWith("http") ? item.value : `https://${item.value}`} target="_blank" rel="noreferrer" className={theme.linkClassName} aria-label={`${item.type} profile`}>
                 {item.value}
               </a>
             ) : item.type.toLowerCase().includes("summary") ? (

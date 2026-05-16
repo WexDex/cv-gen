@@ -37,7 +37,7 @@ export function EducationSection({
               <p className="text-xs">{item.institution}</p>
               {item.details ? <p className="text-xs">{item.details}</p> : null}
             </div>
-            <span className="text-xs">{item.duration}</span>
+            <time className="text-xs">{item.duration}</time>
           </div>
         </article>
       ))}

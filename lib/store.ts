@@ -8,6 +8,7 @@ import { normalizeImportedResume } from "@/lib/normalizeResume";
 import { createId } from "@/lib/uuid";
 import type {
   ColumnId,
+  FontOverride,
   LayoutMode,
   Resume,
   ResumeData,
@@ -42,6 +43,9 @@ type ResumeStore = {
   updateBlock: (sectionId: string, patch: Partial<SectionPlacement>) => void;
   moveSection: (sectionId: string, column: ColumnId, order: number) => void;
   reorderSection: (sectionId: string, order: number) => void;
+  setFontOverride: (fontOverride: FontOverride | null) => void;
+  reorderBlockItems: (sectionId: string, newOrder: number[]) => void;
+  setBlockItemVisibility: (sectionId: string, idx: number, visible: boolean) => void;
   setResumeFromJSON: (resume: unknown) => void;
   getActiveResume: () => Resume | undefined;
 };
@@ -383,6 +387,60 @@ export const useResumeStore = create<ResumeStore>()(
             ];
 
             return touch({ ...resume, layout: { ...resume.layout, sections: updatedSections } });
+          }),
+        }));
+      },
+
+      setFontOverride: (fontOverride) => {
+        set((state) => ({
+          resumes: state.resumes.map((resume) =>
+            resume.id === state.activeId
+              ? touch({ ...resume, fontOverride: fontOverride ?? undefined })
+              : resume,
+          ),
+        }));
+      },
+
+      reorderBlockItems: (sectionId, newOrder) => {
+        set((state) => ({
+          resumes: state.resumes.map((resume) => {
+            if (resume.id !== state.activeId) return resume;
+            return touch({
+              ...resume,
+              layout: {
+                ...resume.layout,
+                sections: resume.layout.sections.map((section) =>
+                  section.id === sectionId
+                    ? { ...section, dataSlice: { ...section.dataSlice, kind: "indexes" as const, order: newOrder } }
+                    : section,
+                ),
+              },
+            });
+          }),
+        }));
+      },
+
+      setBlockItemVisibility: (sectionId, idx, visible) => {
+        set((state) => ({
+          resumes: state.resumes.map((resume) => {
+            if (resume.id !== state.activeId) return resume;
+            const section = resume.layout.sections.find((s) => s.id === sectionId);
+            if (!section) return resume;
+            const currentIndexes = section.dataSlice?.indexes ?? [];
+            const nextIndexes = visible
+              ? [...new Set([...currentIndexes, idx])].sort((a, b) => a - b)
+              : currentIndexes.filter((i) => i !== idx);
+            return touch({
+              ...resume,
+              layout: {
+                ...resume.layout,
+                sections: resume.layout.sections.map((s) =>
+                  s.id === sectionId
+                    ? { ...s, dataSlice: { ...s.dataSlice, kind: "indexes" as const, indexes: nextIndexes } }
+                    : s,
+                ),
+              },
+            });
           }),
         }));
       },

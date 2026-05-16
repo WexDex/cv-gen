@@ -37,7 +37,7 @@ export function ExperienceSection({
               <p className="font-semibold text-sm">{item.position}</p>
               <p className="text-xs">{item.company}</p>
             </div>
-            <span className="text-xs">{item.duration}</span>
+            <time className="text-xs">{item.duration}</time>
           </div>
           <ul className={cn("mt-1 list-disc pl-4 text-xs", display === "compact" ? "space-y-0" : "space-y-0.5")}>
             {item.description.map((line, idx) => (

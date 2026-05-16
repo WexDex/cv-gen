@@ -99,18 +99,44 @@ body {
     to bottom,
     transparent 0,
     transparent calc(var(--cv-a4-band-height) - 1px),
-    rgba(59, 130, 246, 0.2) calc(var(--cv-a4-band-height) - 1px),
-    rgba(59, 130, 246, 0.2) var(--cv-a4-band-height)
+    #94a3b8 calc(var(--cv-a4-band-height) - 1px),
+    #94a3b8 var(--cv-a4-band-height),
+    rgba(226, 232, 240, 0.85) var(--cv-a4-band-height),
+    rgba(226, 232, 240, 0.85) calc(var(--cv-a4-band-height) + 12px),
+    transparent calc(var(--cv-a4-band-height) + 12px)
   );
 }
 
-/* Virtual page overlap: snapped atoms, straddled by A4 line, or whole layout block wrapper. */
+/* Snapped blocks pulse to indicate they were moved to avoid page boundary. */
 @media screen {
   #print-root [data-cv-preview-snap],
-  #print-root [data-cv-preview-straddle],
   #print-root [data-cv-preview-snap-group] {
     border-radius: 4px;
     animation: cv-preview-snap-pulse 1.75s ease-in-out infinite;
+  }
+
+  /* Straddling section (parent cut across pages) — bold red left stripe. */
+  #print-root section[data-cv-preview-straddle] {
+    border-left: 4px solid rgb(239, 68, 68) !important;
+    background-color: rgba(239, 68, 68, 0.06) !important;
+    outline: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  /* Children inside a straddling section — softer red tint. */
+  #print-root section[data-cv-preview-straddle] [data-cv-preview-straddle],
+  #print-root [data-cv-preview-straddle]:not(section) {
+    border-left: 3px solid rgba(239, 68, 68, 0.7);
+    background-color: rgba(239, 68, 68, 0.04);
+  }
+}
+
+/* Spacing overlay: shown when data-show-spacing is on #print-root. */
+@media screen {
+  [data-show-spacing] .cv-print-section {
+    outline: 1px dashed #60a5fa;
+  }
+  [data-show-spacing] .cv-print-subblock {
+    outline: 1px dashed #f59e0b;
   }
 }
 

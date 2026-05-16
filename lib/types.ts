@@ -37,6 +37,7 @@ export interface BlockStyle {
 export interface BlockDataSlice {
   kind: "all" | "indexes";
   indexes?: number[];
+  order?: number[];
 }
 
 export type SectionType =
@@ -165,6 +166,11 @@ export interface ResumeMeta {
   language?: string;
 }
 
+export interface FontOverride {
+  fontFamily: string;
+  fontUrl: string;
+}
+
 export interface Resume {
   id: string;
   meta: ResumeMeta;
@@ -172,4 +178,5 @@ export interface Resume {
   templateVariant: TemplateVariant;
   layout: PageLayout;
   data: ResumeData;
+  fontOverride?: FontOverride;
 }
