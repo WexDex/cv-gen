@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-<<<<<<< Updated upstream
 import { ArrowLeft, ArrowRight, ChevronDown, ChevronUp, Eye, EyeOff, Trash2 } from "lucide-react";
-=======
-import { ArrowLeft, ArrowRight, Eye, EyeOff, Trash2 } from "lucide-react";
->>>>>>> Stashed changes
 
 import { resolveTemplateTheme } from "@/components/templates";
 import { useTemplateStore } from "@/lib/templateStore";
@@ -307,16 +303,12 @@ export function ResumePreview({
       <div
         id="print-root"
         ref={previewRef}
-<<<<<<< Updated upstream
         data-show-spacing={showSpacing ? "" : undefined}
-=======
-        style={theme.fontFamily ? { fontFamily: theme.fontFamily } : undefined}
->>>>>>> Stashed changes
         className={cn(
           "relative mx-auto min-h-[297mm] w-[210mm] max-w-full overflow-hidden border border-zinc-200 shadow-lg print:min-h-0 print:overflow-visible print:shadow-none print:border-none",
           theme.rootClassName,
         )}
-        style={resume.fontOverride?.fontFamily ? { fontFamily: resume.fontOverride.fontFamily } : undefined}
+        style={(resume.fontOverride?.fontFamily ?? theme.fontFamily) ? { fontFamily: resume.fontOverride?.fontFamily ?? theme.fontFamily } : undefined}
       >
         <div
           className="cv-resume-sheet-inner relative z-0 grid min-h-[297mm] print:min-h-0 print:items-start print:content-start"

@@ -118,11 +118,7 @@ export default function BuilderPageClient() {
           <div className={cn("min-h-0 flex-1 overflow-auto cv-scrollbar", uiTheme === "dark" && "cv-scrollbar-dark")}>
             {leftTab === "form" ? (
               <BuilderErrorBoundary isDark={uiTheme === "dark"} title="Form editor" resetKey={errorResetKey}>
-<<<<<<< Updated upstream
-                <SectionForms isDark={uiTheme === "dark"} selectedSectionType={selectedSectionType} />
-=======
                 <SectionForms isDark={uiTheme === "dark"} selectedSectionId={effectiveSelectedBlockId} />
->>>>>>> Stashed changes
               </BuilderErrorBoundary>
             ) : (
               <JsonEditor isDark={uiTheme === "dark"} leftTab={leftTab} />

@@ -1,33 +1,37 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CopyPlus,
   Download,
-  Pencil,
   ExternalLink,
   FileJson,
   FileText,
   Image as ImageIcon,
+  LayoutTemplate,
   Moon,
+  MoreHorizontal,
+  Pencil,
+  Plus,
   Ruler,
   Sun,
   Trash2,
   Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { OptionChips } from "@/components/builder/OptionChips";
 
-import { templateList } from "@/components/templates";
-import { templateThemes } from "@/components/templates";
+import { templateList, templateThemes } from "@/components/templates";
 import { useTemplateStore } from "@/lib/templateStore";
 import { useResumeStore } from "@/lib/store";
 import { exportAsDocx } from "@/lib/export/docx";
 import { exportAsPng } from "@/lib/export/png";
 import { exportAsPrint, openA4Preview } from "@/lib/export/print";
 import { exportResumeJson, parseResumeJson } from "@/lib/export/json";
+import type { BuiltInTemplateId } from "@/lib/types";
 
 const FONT_PRESETS = [
   { label: "Default", fontFamily: "", fontUrl: "" },
@@ -46,7 +50,139 @@ interface ToolbarProps {
   onToggleSpacing?: () => void;
 }
 
+// ─── Dropdown primitives ──────────────────────────────────────────────────────
+
+function useOutsideClose(cb: () => void) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) cb();
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [cb]);
+  return ref;
+}
+
+function Dropdown({
+  trigger,
+  children,
+  isDark,
+  align = "left",
+}: {
+  trigger: (open: boolean) => React.ReactNode;
+  children: (close: () => void) => React.ReactNode;
+  isDark: boolean;
+  align?: "left" | "right";
+}) {
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
+  const ref = useOutsideClose(close);
+  return (
+    <div ref={ref} className="relative">
+      <div onClick={() => setOpen((o) => !o)}>{trigger(open)}</div>
+      {open && (
+        <div
+          className={cn(
+            "absolute top-full z-50 mt-1 min-w-45 rounded-lg border py-1 shadow-xl",
+            align === "right" ? "right-0" : "left-0",
+            isDark
+              ? "border-zinc-700 bg-zinc-900 text-zinc-100"
+              : "border-zinc-200 bg-white text-zinc-800",
+          )}
+        >
+          {children(close)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MenuItem({
+  icon,
+  label,
+  sublabel,
+  onClick,
+  danger = false,
+  disabled = false,
+  active = false,
+  isDark,
+}: {
+  icon?: React.ReactNode;
+  label: string;
+  sublabel?: string;
+  onClick?: () => void;
+  danger?: boolean;
+  disabled?: boolean;
+  active?: boolean;
+  isDark: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm disabled:opacity-40",
+        danger
+          ? "text-red-500 hover:bg-red-500/10"
+          : active
+            ? isDark
+              ? "bg-cyan-700/40 text-cyan-300"
+              : "bg-blue-50 text-blue-700"
+            : isDark
+              ? "hover:bg-zinc-800"
+              : "hover:bg-zinc-50",
+      )}
+    >
+      {icon && <span className="shrink-0 opacity-60">{icon}</span>}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate">{label}</span>
+        {sublabel && <span className="block truncate text-xs opacity-50">{sublabel}</span>}
+      </span>
+      {active && <span className="ml-auto shrink-0 text-xs">✓</span>}
+    </button>
+  );
+}
+
+function MenuDivider({ isDark }: { isDark: boolean }) {
+  return <div className={cn("my-1 border-t", isDark ? "border-zinc-800" : "border-zinc-100")} />;
+}
+
+function MenuLabel({ label, isDark }: { label: string; isDark: boolean }) {
+  return (
+    <p className={cn("px-3 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-widest first:pt-1.5", isDark ? "text-zinc-500" : "text-zinc-400")}>
+      {label}
+    </p>
+  );
+}
+
+// ─── Toolbar button styles ────────────────────────────────────────────────────
+
+function tbtn(isDark: boolean, active = false, danger = false) {
+  return cn(
+    "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors select-none whitespace-nowrap",
+    danger
+      ? "text-red-500 hover:bg-red-500/10"
+      : active
+        ? isDark
+          ? "bg-cyan-700 text-white"
+          : "bg-blue-600 text-white"
+        : isDark
+          ? "text-zinc-300 hover:bg-zinc-700 hover:text-zinc-100"
+          : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900",
+  );
+}
+
+function Sep({ isDark }: { isDark: boolean }) {
+  return <div className={cn("mx-1 h-5 w-px shrink-0", isDark ? "bg-zinc-700" : "bg-zinc-200")} />;
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 export function Toolbar({ previewRef, uiTheme, onToggleTheme, showSpacing = false, onToggleSpacing }: ToolbarProps) {
+  const isDark = uiTheme === "dark";
+
   const activeResume = useResumeStore((state) => state.getActiveResume());
   const resumes = useResumeStore((state) => state.resumes);
   const activeId = useResumeStore((state) => state.activeId);
@@ -67,8 +203,18 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme, showSpacing = fals
     ...customTemplates.map((t) => ({ value: t.id, label: t.name })),
   ];
 
-  if (!activeResume) return null;
-  if (resumes.length === 0) return null;
+  if (!activeResume || resumes.length === 0) return null;
+
+  const activeIndex = resumes.findIndex((r) => r.id === activeId);
+  const prevResume = resumes[(activeIndex - 1 + resumes.length) % resumes.length];
+  const nextResume = resumes[(activeIndex + 1) % resumes.length];
+
+  const currentTemplate = allTemplateOptions.find((t) => t.value === activeResume.templateId);
+  const hasVariants =
+    Boolean(templateThemes[activeResume.templateId as BuiltInTemplateId]?.light) &&
+    Boolean(templateThemes[activeResume.templateId as BuiltInTemplateId]?.dark);
+
+  const currentFont = FONT_PRESETS.find((p) => p.fontFamily === (activeResume.fontOverride?.fontFamily ?? "")) ?? FONT_PRESETS[0];
 
   const atsChecks = [
     { label: "Name", pass: Boolean(activeResume.data.personalInfo.name?.trim()) },
@@ -79,18 +225,6 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme, showSpacing = fals
     { label: "Text template", pass: activeResume.templateId !== "webdev" },
   ];
   const atsScore = atsChecks.filter((c) => c.pass).length;
-  const activeIndex = resumes.findIndex((item) => item.id === activeId);
-  const prevResume = resumes[(activeIndex - 1 + resumes.length) % resumes.length];
-  const nextResume = resumes[(activeIndex + 1) % resumes.length];
-  const sideItems = resumes.length >= 3 ? 2 : resumes.length - 1;
-  const windowResumes =
-    sideItems <= 0
-      ? [activeResume]
-      : [
-          resumes[(activeIndex - 1 + resumes.length) % resumes.length],
-          activeResume,
-          ...(sideItems === 2 ? [resumes[(activeIndex + 1) % resumes.length]] : []),
-        ];
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -98,396 +232,346 @@ export function Toolbar({ previewRef, uiTheme, onToggleTheme, showSpacing = fals
     try {
       const parsed = await parseResumeJson(file);
       setResumeFromJSON(parsed);
-    } catch (error) {
-      console.error(error);
+    } catch {
       alert("Could not parse JSON file.");
     }
     event.target.value = "";
   };
 
-  const panel = (extra?: string) =>
-    cn(
-      "min-w-0 shrink rounded border p-1.5",
-      uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50",
-      extra,
-    );
-  const tightBtn = cn(
-    "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] leading-tight whitespace-nowrap",
-    uiTheme === "dark" ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "bg-white",
-  );
-
   return (
     <div
       className={cn(
-        "flex min-h-10 min-w-0 flex-nowrap items-stretch gap-1.5 overflow-hidden border-b px-2 py-1.5",
-        uiTheme === "dark" ? "border-zinc-700 bg-zinc-900 text-zinc-100" : "bg-white text-zinc-900",
+        "flex h-11 min-w-0 items-center gap-0.5 border-b px-2",
+        isDark ? "border-zinc-700 bg-zinc-900 text-zinc-100" : "border-zinc-200 bg-white text-zinc-900",
       )}
     >
-      <div className="flex min-w-0 flex-1 flex-nowrap items-stretch gap-1.5 overflow-hidden">
-        <div className={panel()}>
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            Project List
-          </p>
-            <div className="flex items-center gap-0.5">
-            <button
-              type="button"
-              title="Previous project"
-              className={cn("shrink-0 rounded border p-0.5", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")}
-              onClick={() => setActiveResume(prevResume.id)}
-                disabled={resumes.length <= 1}
-            >
-              <ChevronLeft size={14} />
-            </button>
-              <div key={activeResume.id} className="cv-project-window flex items-center gap-1">
-                {windowResumes.map((resume) => {
-                  const isActive = resume.id === activeResume.id;
-                  const lang = resume.meta.language?.trim();
-                  return (
-                    <button
-                      key={resume.id}
-                      type="button"
-                      title={
-                        isActive
-                          ? "Current project"
-                          : `Open project ${resume.meta.name}${lang ? ` (${lang})` : ""}`
-                      }
-                      onClick={isActive ? undefined : () => setActiveResume(resume.id)}
-                      className={cn(
-                        "max-w-[min(160px,22vw)] min-w-0 shrink rounded border px-1.5 py-0.5 text-[11px]",
-                        isActive
-                          ? uiTheme === "dark"
-                            ? "border-cyan-600 bg-cyan-700 text-white"
-                            : "border-blue-500 bg-blue-600 text-white"
-                          : uiTheme === "dark"
-                            ? "border-zinc-700 bg-zinc-900 text-zinc-300 opacity-75"
-                            : "bg-white text-zinc-600 opacity-75",
-                      )}
-                    >
-                      <span className="flex min-w-0 max-w-full items-center gap-1">
-                        <span className="min-w-0 truncate">{resume.meta.name}</span>
-                        {lang ? (
-                          <span
-                            className={cn(
-                              "shrink-0 rounded-full border px-1 py-px text-[8px] font-semibold uppercase leading-none tracking-wide",
-                              isActive
-                                ? "border-white/35 bg-white/15 text-white"
-                                : uiTheme === "dark"
-                                  ? "border-zinc-600 bg-zinc-800 text-zinc-200"
-                                  : "border-zinc-200 bg-zinc-100 text-zinc-700",
-                            )}
-                          >
-                            {lang}
-                          </span>
-                        ) : null}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            <button
-              type="button"
-              title="Next project"
-              className={cn("shrink-0 rounded border p-0.5", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")}
-              onClick={() => setActiveResume(nextResume.id)}
-                disabled={resumes.length <= 1}
-            >
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
+      {/* ── Project switcher ─────────────────────────────────────────────── */}
+      <button
+        type="button"
+        title="Previous project"
+        disabled={resumes.length <= 1}
+        onClick={() => setActiveResume(prevResume.id)}
+        className={tbtn(isDark)}
+      >
+        <ChevronLeft size={14} />
+      </button>
 
-        <div className={panel("max-w-20 shrink-0")}>
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            Language
-          </p>
-          <input
-            type="text"
-            value={activeResume.meta.language ?? ""}
-            onChange={(event) => setResumeLanguage(event.target.value)}
-            placeholder="en"
-            autoComplete="off"
-            spellCheck={false}
-            title="Saved on resume metadata (export, future use)"
-            className={cn(
-              "w-full max-w-full rounded border px-1 py-0.5 text-[11px] outline-none",
-              uiTheme === "dark" ? "border-zinc-600 bg-zinc-900 text-zinc-100 placeholder:text-zinc-500" : "border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400",
+      <Dropdown
+        isDark={isDark}
+        trigger={(open) => (
+          <button type="button" className={cn(tbtn(isDark), "max-w-40", open && (isDark ? "bg-zinc-700" : "bg-zinc-100"))}>
+            <span className="min-w-0 truncate">{activeResume.meta.name}</span>
+            {activeResume.meta.language?.trim() && (
+              <span className={cn("shrink-0 rounded-full border px-1 py-px text-[9px] font-semibold uppercase", isDark ? "border-zinc-600 bg-zinc-800 text-zinc-300" : "border-zinc-200 bg-zinc-100 text-zinc-600")}>
+                {activeResume.meta.language.trim()}
+              </span>
             )}
-          />
-        </div>
-
-        <div className={panel()}>
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            Add New
-          </p>
-          <div className="flex min-w-0 flex-nowrap items-center gap-0.5">
-            <button title="Create sample project" type="button" className={cn("shrink-0 rounded border px-1.5 py-0.5 text-[11px]", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")} onClick={() => addResume("sample", "Sample Project")}>Sample</button>
-            <button title="Create blank project" type="button" className={cn("shrink-0 rounded border px-1.5 py-0.5 text-[11px]", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")} onClick={() => addResume("blank", "Blank Project")}>Blank</button>
-            <Link title="Browse template gallery" href="/templates" className={cn("shrink-0 rounded border px-1.5 py-0.5 text-[11px]", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")}>Templates</Link>
-          </div>
-        </div>
-
-        <div className={panel()}>
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            Actions
-          </p>
-          <div className="flex min-w-0 flex-nowrap items-center gap-0.5">
-            <button
-              title="Edit current project name"
-              type="button"
-              className={cn("inline-flex shrink-0 items-center gap-0.5 rounded border px-1.5 py-0.5 text-[11px]", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")}
-              onClick={() => {
-                const nextName = window.prompt("Project name", activeResume.meta.name);
-                if (nextName === null) return;
-                renameActiveResume(nextName);
-              }}
-            >
-              <Pencil size={12} />
-              Edit name
-            </button>
-            <button title="Duplicate current project" type="button" className={cn("inline-flex shrink-0 items-center gap-0.5 rounded border px-1.5 py-0.5 text-[11px]", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")} onClick={duplicateActiveResume}>
-              <CopyPlus size={12} />
-              Duplicate
-            </button>
-            <button title="Delete current project" type="button" className={cn("inline-flex shrink-0 items-center gap-0.5 rounded border px-1.5 py-0.5 text-[11px] text-red-600 disabled:opacity-50", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-white")} disabled={resumes.length <= 1} onClick={() => deleteResume(activeId)}>
-              <Trash2 size={12} />
-              Delete
-            </button>
-          </div>
-        </div>
-
-        <div className={panel("min-w-[120px] max-w-[min(100%,28rem)]")}>
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            Template Selection
-          </p>
-          <OptionChips
-            options={allTemplateOptions}
-            value={activeResume.templateId}
-            onChange={(value) => setTemplate(value as typeof activeResume.templateId)}
-            isDark={uiTheme === "dark"}
-            size="sm"
-            nowrap
-            truncateLabels
-          />
-        </div>
-
-        <div className={panel("shrink-0")}>
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            Preview Theme
-          </p>
-          {templateThemes[activeResume.templateId as import("@/lib/types").BuiltInTemplateId]?.light && templateThemes[activeResume.templateId as import("@/lib/types").BuiltInTemplateId]?.dark ? (
-            <div className={cn("inline-flex rounded border p-0.5", uiTheme === "dark" ? "border-zinc-700 bg-zinc-900" : "bg-zinc-100")}>
-              {(["light", "dark"] as const).map((variant) => (
-                <button
-                  key={variant}
-                  title={`Set preview theme ${variant}`}
-                  type="button"
-                  onClick={() => setTemplateVariant(variant)}
-                  className={cn(
-                    "rounded px-1.5 py-0.5 text-[11px] capitalize",
-                    activeResume.templateVariant === variant
-                      ? uiTheme === "dark"
-                        ? "bg-cyan-700 text-white"
-                        : "bg-zinc-900 text-white"
-                      : uiTheme === "dark"
-                        ? "text-zinc-200"
-                        : "text-zinc-700",
-                  )}
-                >
-                  {variant}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-zinc-500">No variants</p>
-          )}
-        </div>
-
-        <div className={panel("shrink-0")}>
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            UI Theme
-          </p>
-          <button
-            title="Toggle UI theme"
-            className={cn(
-              "inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-[11px]",
-              uiTheme === "dark" ? "border-zinc-700 bg-zinc-900 text-zinc-100" : "bg-white",
-            )}
-            type="button"
-            onClick={onToggleTheme}
-          >
-            {uiTheme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
-            {uiTheme === "dark" ? "Light UI" : "Dark UI"}
+            <ChevronDown size={12} className="shrink-0 opacity-50" />
           </button>
-        </div>
-
-        <div className={panel("shrink-0")}>
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            Font
-          </p>
-          <select
-            className={cn(
-              "rounded border px-1 py-0.5 text-[11px] outline-none",
-              uiTheme === "dark" ? "border-zinc-600 bg-zinc-900 text-zinc-100 [color-scheme:dark]" : "border-zinc-300 bg-white",
-            )}
-            value={activeResume.fontOverride?.fontFamily ?? ""}
-            onChange={(event) => {
-              const preset = FONT_PRESETS.find((p) => p.fontFamily === event.target.value);
-              if (!preset || !preset.fontFamily) {
-                setFontOverride(null);
-              } else {
-                setFontOverride({ fontFamily: preset.fontFamily, fontUrl: preset.fontUrl });
-              }
-            }}
-          >
-            {FONT_PRESETS.map((preset) => (
-              <option key={preset.label} value={preset.fontFamily}>{preset.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className={panel("shrink-0")}>
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            Spacing
-          </p>
-          <button
-            title="Toggle spacing overlay"
-            type="button"
-            onClick={onToggleSpacing}
-            className={cn(
-              "inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-[11px]",
-              showSpacing
-                ? uiTheme === "dark" ? "border-cyan-600 bg-cyan-700 text-white" : "border-blue-500 bg-blue-600 text-white"
-                : uiTheme === "dark" ? "border-zinc-700 bg-zinc-900 text-zinc-100" : "bg-white",
-            )}
-          >
-            <Ruler size={12} />
-            Overlay
-          </button>
-        </div>
-
-        <div className={panel("shrink-0")}>
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            ATS
-          </p>
-          <div className="group relative">
-            <button
-              type="button"
-              title="ATS readiness score"
-              className={cn(
-                "inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-[11px] font-medium",
-                atsScore === 6
-                  ? "border-green-500 bg-green-600 text-white"
-                  : "border-amber-500 bg-amber-500 text-white",
-              )}
-            >
-              {atsScore === 6 ? `✓ ATS Ready` : `ATS ${atsScore}/6`}
-            </button>
-            <div className={cn(
-              "absolute right-0 top-full z-30 mt-1 hidden min-w-[160px] rounded border p-2 shadow-lg group-hover:block",
-              uiTheme === "dark" ? "border-zinc-700 bg-zinc-900 text-zinc-100" : "border-zinc-200 bg-white text-zinc-800",
-            )}>
-              {atsChecks.map((check) => (
-                <div key={check.label} className="flex items-center gap-1.5 py-0.5 text-[11px]">
-                  <span className={check.pass ? "text-green-500" : "text-red-500"}>{check.pass ? "✓" : "✗"}</span>
-                  {check.label}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        className={cn(
-          "ml-2 flex min-w-0 shrink-0 items-stretch gap-2 border-l pl-2 sm:ml-3 sm:gap-3 sm:pl-3",
-          uiTheme === "dark" ? "border-zinc-600" : "border-zinc-300",
         )}
       >
-        <div
-          className={cn(
-            "min-w-0 rounded border p-1.5",
-            uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50",
-          )}
-        >
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            Export
-          </p>
-          <div className="flex min-w-0 flex-nowrap items-center gap-1">
+        {(close) => (
+          <>
+            <MenuLabel label="Projects" isDark={isDark} />
+            {resumes.map((r) => (
+              <MenuItem
+                key={r.id}
+                label={r.meta.name}
+                sublabel={r.meta.language?.trim() ? `lang: ${r.meta.language.trim()}` : undefined}
+                active={r.id === activeId}
+                isDark={isDark}
+                onClick={() => { setActiveResume(r.id); close(); }}
+              />
+            ))}
+          </>
+        )}
+      </Dropdown>
+
+      <button
+        type="button"
+        title="Next project"
+        disabled={resumes.length <= 1}
+        onClick={() => setActiveResume(nextResume.id)}
+        className={tbtn(isDark)}
+      >
+        <ChevronRight size={14} />
+      </button>
+
+      {/* New project */}
+      <Dropdown
+        isDark={isDark}
+        trigger={(open) => (
+          <button type="button" className={cn(tbtn(isDark), open && (isDark ? "bg-zinc-700" : "bg-zinc-100"))}>
+            <Plus size={13} />
+            New
+            <ChevronDown size={11} className="opacity-50" />
+          </button>
+        )}
+      >
+        {(close) => (
+          <>
+            <MenuLabel label="Create project" isDark={isDark} />
+            <MenuItem icon={<Plus size={13} />} label="Sample project" isDark={isDark} onClick={() => { addResume("sample", "Sample Project"); close(); }} />
+            <MenuItem icon={<Plus size={13} />} label="Blank project" isDark={isDark} onClick={() => { addResume("blank", "Blank Project"); close(); }} />
+          </>
+        )}
+      </Dropdown>
+
+      {/* Project actions */}
+      <Dropdown
+        isDark={isDark}
+        trigger={(open) => (
+          <button type="button" title="Project actions" className={cn(tbtn(isDark), open && (isDark ? "bg-zinc-700" : "bg-zinc-100"))}>
+            <MoreHorizontal size={14} />
+          </button>
+        )}
+      >
+        {(close) => (
+          <>
+            <MenuLabel label="Project" isDark={isDark} />
+            <MenuItem
+              icon={<Pencil size={13} />}
+              label="Rename"
+              isDark={isDark}
+              onClick={() => {
+                const next = window.prompt("Project name", activeResume.meta.name);
+                if (next !== null) renameActiveResume(next);
+                close();
+              }}
+            />
+            <MenuItem icon={<CopyPlus size={13} />} label="Duplicate" isDark={isDark} onClick={() => { duplicateActiveResume(); close(); }} />
+            <MenuDivider isDark={isDark} />
+            <MenuLabel label="Language" isDark={isDark} />
+            <div className="px-3 pb-2">
+              <input
+                type="text"
+                value={activeResume.meta.language ?? ""}
+                onChange={(e) => setResumeLanguage(e.target.value)}
+                placeholder="en, fr, ar…"
+                autoComplete="off"
+                spellCheck={false}
+                className={cn(
+                  "w-full rounded border px-2 py-1 text-xs outline-none",
+                  isDark ? "border-zinc-700 bg-zinc-800 text-zinc-100 placeholder:text-zinc-500" : "border-zinc-200 bg-zinc-50 placeholder:text-zinc-400",
+                )}
+              />
+            </div>
+            <MenuDivider isDark={isDark} />
+            <MenuItem
+              icon={<Trash2 size={13} />}
+              label="Delete project"
+              danger
+              disabled={resumes.length <= 1}
+              isDark={isDark}
+              onClick={() => { deleteResume(activeId); close(); }}
+            />
+          </>
+        )}
+      </Dropdown>
+
+      <Sep isDark={isDark} />
+
+      {/* ── Template dropdown ──────────────────────────────────────────────── */}
+      <Dropdown
+        isDark={isDark}
+        trigger={(open) => (
+          <button type="button" className={cn(tbtn(isDark), "max-w-45", open && (isDark ? "bg-zinc-700" : "bg-zinc-100"))}>
+            <LayoutTemplate size={13} className="shrink-0" />
+            <span className="min-w-0 truncate">{currentTemplate?.label ?? activeResume.templateId}</span>
+            <ChevronDown size={11} className="shrink-0 opacity-50" />
+          </button>
+        )}
+      >
+        {(close) => (
+          <>
+            {templateList.length > 0 && <MenuLabel label="Built-in" isDark={isDark} />}
+            {templateList.map((t) => (
+              <MenuItem
+                key={t.id}
+                label={t.name}
+                active={activeResume.templateId === t.id}
+                isDark={isDark}
+                onClick={() => { setTemplate(t.id); close(); }}
+              />
+            ))}
+            {customTemplates.length > 0 && (
+              <>
+                <MenuDivider isDark={isDark} />
+                <MenuLabel label="Custom" isDark={isDark} />
+                {customTemplates.map((t) => (
+                  <MenuItem
+                    key={t.id}
+                    label={t.name}
+                    active={activeResume.templateId === t.id}
+                    isDark={isDark}
+                    onClick={() => { setTemplate(t.id); close(); }}
+                  />
+                ))}
+              </>
+            )}
+            <MenuDivider isDark={isDark} />
+            <Link href="/admin" onClick={close} className={cn("flex items-center gap-2.5 px-3 py-1.5 text-sm", isDark ? "text-zinc-400 hover:bg-zinc-800" : "text-zinc-500 hover:bg-zinc-50")}>
+              <LayoutTemplate size={13} className="opacity-60" />
+              Manage templates →
+            </Link>
+          </>
+        )}
+      </Dropdown>
+
+      {/* Light/Dark variant */}
+      {hasVariants && (
+        <div className={cn("flex items-center rounded-md border", isDark ? "border-zinc-700 bg-zinc-800" : "border-zinc-200 bg-zinc-100")}>
+          {(["light", "dark"] as const).map((v) => (
             <button
-              className={tightBtn}
+              key={v}
               type="button"
+              title={`${v} resume style`}
+              onClick={() => setTemplateVariant(v)}
+              className={cn(
+                "rounded-md px-2 py-0.5 text-xs font-medium capitalize transition-colors",
+                activeResume.templateVariant === v
+                  ? isDark ? "bg-zinc-600 text-zinc-100" : "bg-white text-zinc-900 shadow-sm"
+                  : isDark ? "text-zinc-400 hover:text-zinc-200" : "text-zinc-500 hover:text-zinc-700",
+              )}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Font */}
+      <Dropdown
+        isDark={isDark}
+        trigger={(open) => (
+          <button type="button" className={cn(tbtn(isDark), open && (isDark ? "bg-zinc-700" : "bg-zinc-100"))}>
+            <span className="font-semibold text-[11px]">Aa</span>
+            <span className="max-w-18 truncate">{currentFont.label}</span>
+            <ChevronDown size={11} className="opacity-50" />
+          </button>
+        )}
+      >
+        {(close) => (
+          <>
+            <MenuLabel label="Font" isDark={isDark} />
+            {FONT_PRESETS.map((preset) => (
+              <MenuItem
+                key={preset.label}
+                label={preset.label}
+                active={(activeResume.fontOverride?.fontFamily ?? "") === preset.fontFamily}
+                isDark={isDark}
+                onClick={() => {
+                  if (!preset.fontFamily) setFontOverride(null);
+                  else setFontOverride({ fontFamily: preset.fontFamily, fontUrl: preset.fontUrl });
+                  close();
+                }}
+              />
+            ))}
+          </>
+        )}
+      </Dropdown>
+
+      <Sep isDark={isDark} />
+
+      {/* ── Tools ────────────────────────────────────────────────────────── */}
+
+      {/* ATS badge */}
+      <Dropdown
+        isDark={isDark}
+        trigger={(open) => (
+          <button
+            type="button"
+            title="ATS readiness"
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors",
+              atsScore === 6
+                ? "bg-green-600 text-white hover:bg-green-700"
+                : "bg-amber-500 text-white hover:bg-amber-600",
+            )}
+          >
+            {atsScore === 6 ? "✓ ATS" : `ATS ${atsScore}/6`}
+          </button>
+        )}
+      >
+        {() => (
+          <>
+            <MenuLabel label="ATS Checklist" isDark={isDark} />
+            {atsChecks.map((check) => (
+              <div key={check.label} className={cn("flex items-center gap-2 px-3 py-1 text-sm", isDark ? "text-zinc-300" : "text-zinc-700")}>
+                <span className={check.pass ? "text-green-500" : "text-red-400"}>{check.pass ? "✓" : "✗"}</span>
+                {check.label}
+              </div>
+            ))}
+          </>
+        )}
+      </Dropdown>
+
+      {/* Spacing overlay */}
+      <button
+        type="button"
+        title="Toggle spacing overlay"
+        onClick={onToggleSpacing}
+        className={tbtn(isDark, showSpacing)}
+      >
+        <Ruler size={13} />
+      </button>
+
+      <Sep isDark={isDark} />
+
+      {/* ── Export ────────────────────────────────────────────────────────── */}
+      <Dropdown
+        isDark={isDark}
+        align="right"
+        trigger={(open) => (
+          <button type="button" className={cn(tbtn(isDark), open && (isDark ? "bg-zinc-700" : "bg-zinc-100"))}>
+            <FileText size={13} />
+            Export
+            <ChevronDown size={11} className="opacity-50" />
+          </button>
+        )}
+      >
+        {(close) => (
+          <>
+            <MenuLabel label="Preview" isDark={isDark} />
+            <MenuItem
+              icon={<ExternalLink size={13} />}
+              label="Open A4 preview"
+              isDark={isDark}
               onClick={() => {
                 if (!previewRef.current) return;
-                try {
-                  openA4Preview(previewRef.current, `${activeResume.meta.name} - A4 Preview`);
-                } catch (error) {
-                  console.error(error);
-                  alert(error instanceof Error ? error.message : "Could not open preview.");
-                }
+                try { openA4Preview(previewRef.current, `${activeResume.meta.name} - A4 Preview`); }
+                catch (err) { alert(err instanceof Error ? err.message : "Could not open preview."); }
+                close();
               }}
-              title="Open A4 preview in new tab"
-            >
-              <ExternalLink size={12} />
-              Preview
-            </button>
-            <button className={tightBtn} type="button" onClick={exportAsPrint} title="Export as PDF (print)">
-              <FileText size={12} />
-              PDF
-            </button>
-            <button
-              className={tightBtn}
-              type="button"
-              onClick={() => previewRef.current && exportAsPng(previewRef.current)}
-              title="Export as PNG image"
-            >
-              <ImageIcon size={12} />
-              PNG
-            </button>
-            <button className={tightBtn} type="button" onClick={() => exportAsDocx(activeResume)} title="Export as DOCX">
-              <Download size={12} />
-              DOCX
-            </button>
-            <button className={tightBtn} type="button" onClick={() => exportResumeJson(activeResume)} title="Export as JSON">
-              <FileJson size={12} />
-              JSON
-            </button>
-          </div>
-        </div>
+            />
+            <MenuDivider isDark={isDark} />
+            <MenuLabel label="Export as" isDark={isDark} />
+            <MenuItem icon={<FileText size={13} />} label="PDF (print)" isDark={isDark} onClick={() => { exportAsPrint(); close(); }} />
+            <MenuItem icon={<ImageIcon size={13} />} label="PNG image" isDark={isDark} onClick={() => { previewRef.current && exportAsPng(previewRef.current); close(); }} />
+            <MenuItem icon={<Download size={13} />} label="DOCX" isDark={isDark} onClick={() => { exportAsDocx(activeResume); close(); }} />
+            <MenuItem icon={<FileJson size={13} />} label="JSON" isDark={isDark} onClick={() => { exportResumeJson(activeResume); close(); }} />
+          </>
+        )}
+      </Dropdown>
 
-        <div
-          className={cn(
-            "shrink-0 rounded border p-1.5",
-            uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50",
-          )}
-        >
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            Import
-          </p>
-          <label className={cn(tightBtn, "cursor-pointer")}>
-            <Upload size={12} />
-            JSON file
-            <input className="hidden" type="file" accept=".json,application/json" onChange={handleImport} />
-          </label>
-        </div>
+      {/* Import */}
+      <label className={cn(tbtn(isDark), "cursor-pointer")} title="Import JSON file">
+        <Upload size={13} />
+        Import
+        <input className="hidden" type="file" accept=".json,application/json" onChange={handleImport} />
+      </label>
 
-        <div
-          className={cn(
-            "shrink-0 rounded border p-1.5",
-            uiTheme === "dark" ? "border-zinc-700 bg-zinc-800/60" : "border-zinc-200 bg-zinc-50",
-          )}
-        >
-          <p className={cn("mb-0.5 text-[9px] uppercase tracking-wide", uiTheme === "dark" ? "text-zinc-300" : "text-zinc-500")}>
-            Admin
-          </p>
-          <Link
-            href="/admin"
-            className={cn(tightBtn)}
-            title="Open template editor"
-          >
-            Templates
-          </Link>
-        </div>
-      </div>
+      <Sep isDark={isDark} />
+
+      {/* ── UI controls ───────────────────────────────────────────────────── */}
+      <Link href="/admin" className={tbtn(isDark)} title="Template editor">
+        <LayoutTemplate size={13} />
+        Admin
+      </Link>
+
+      <button type="button" onClick={onToggleTheme} title={isDark ? "Switch to light UI" : "Switch to dark UI"} className={tbtn(isDark)}>
+        {isDark ? <Sun size={13} /> : <Moon size={13} />}
+      </button>
     </div>
   );
 }

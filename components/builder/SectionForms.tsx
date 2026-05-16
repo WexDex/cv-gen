@@ -1,10 +1,6 @@
 "use client";
 
-<<<<<<< Updated upstream
 import { useEffect, useRef, useMemo, useState } from "react";
-=======
-import { useEffect, useMemo, useRef, useState } from "react";
->>>>>>> Stashed changes
 import { X } from "lucide-react";
 
 import { contactTypeOptions, getContactIcon } from "@/lib/contactMeta";
@@ -40,11 +36,7 @@ function SectionBlock({ title, children, isDark, sectionType }: SectionBlockProp
   return (
     <section
       data-section-type={sectionType}
-<<<<<<< Updated upstream
       className={cn("space-y-2 rounded border p-3 transition-shadow duration-300", isDark ? "border-zinc-700 bg-zinc-900" : "bg-white")}
-=======
-      className={cn("space-y-2 rounded border p-3", isDark ? "border-zinc-700 bg-zinc-900" : "bg-white")}
->>>>>>> Stashed changes
     >
       <h3 className={cn("text-sm font-semibold", isDark ? "text-zinc-100" : "")}>{title}</h3>
       {children}
@@ -54,38 +46,30 @@ function SectionBlock({ title, children, isDark, sectionType }: SectionBlockProp
 
 interface SectionFormsProps {
   isDark?: boolean;
-<<<<<<< Updated upstream
-  selectedSectionType?: string | null;
-}
-
-export function SectionForms({ isDark = false, selectedSectionType }: SectionFormsProps) {
-=======
   selectedSectionId?: string | null;
 }
 
 export function SectionForms({ isDark = false, selectedSectionId }: SectionFormsProps) {
->>>>>>> Stashed changes
   const activeResume = useResumeStore((state) => state.getActiveResume());
   const updateData = useResumeStore((state) => state.updateData);
   const updateBlock = useResumeStore((state) => state.updateBlock);
   const [formColumn, setFormColumn] = useState<FormColumnSide>("left");
-<<<<<<< Updated upstream
-  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (!selectedSectionType) return;
-    const el = document.querySelector(`[data-section-type="${selectedSectionType}"]`) as HTMLElement | null;
-    if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
-    el.classList.add("ring-2", "ring-yellow-400");
-    highlightTimerRef.current = setTimeout(() => {
-      el.classList.remove("ring-2", "ring-yellow-400");
-    }, 1400);
-  }, [selectedSectionType]);
-=======
   const containerRef = useRef<HTMLDivElement>(null);
   const pendingScrollTypeRef = useRef<string | null>(null);
+  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scrollAndHighlight = (type: string) => {
+    requestAnimationFrame(() => {
+      const el = containerRef.current?.querySelector(`[data-section-type="${type}"]`) as HTMLElement | null;
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+      el.classList.add("ring-2", "ring-yellow-400");
+      highlightTimerRef.current = setTimeout(() => {
+        el.classList.remove("ring-2", "ring-yellow-400");
+      }, 1400);
+    });
+  };
 
   useEffect(() => {
     if (!selectedSectionId || !activeResume) return;
@@ -99,12 +83,7 @@ export function SectionForms({ isDark = false, selectedSectionId }: SectionForms
       pendingScrollTypeRef.current = section.type;
       setFormColumn(targetColumn);
     } else {
-      pendingScrollTypeRef.current = section.type;
-      requestAnimationFrame(() => {
-        const el = containerRef.current?.querySelector(`[data-section-type="${pendingScrollTypeRef.current}"]`);
-        el?.scrollIntoView({ behavior: "smooth", block: "start" });
-        pendingScrollTypeRef.current = null;
-      });
+      scrollAndHighlight(section.type);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSectionId]);
@@ -112,14 +91,10 @@ export function SectionForms({ isDark = false, selectedSectionId }: SectionForms
   useEffect(() => {
     if (!pendingScrollTypeRef.current) return;
     const type = pendingScrollTypeRef.current;
-    const timer = setTimeout(() => {
-      const el = containerRef.current?.querySelector(`[data-section-type="${type}"]`);
-      el?.scrollIntoView({ behavior: "smooth", block: "start" });
-      pendingScrollTypeRef.current = null;
-    }, 60);
+    pendingScrollTypeRef.current = null;
+    const timer = setTimeout(() => scrollAndHighlight(type), 60);
     return () => clearTimeout(timer);
   }, [formColumn]);
->>>>>>> Stashed changes
 
   const data = useMemo(() => activeResume?.data, [activeResume]);
 
@@ -229,7 +204,6 @@ export function SectionForms({ isDark = false, selectedSectionId }: SectionForms
       {showPersonalCore || showSummaryField ? (
       <SectionBlock
         title={showPersonalCore ? "Personal Information" : "Summary"}
-        sectionType={showPersonalCore ? "personalInfo" : "summary"}
         isDark={isDark}
         sectionType={showPersonalCore ? "personalInfo" : "summary"}
       >
@@ -374,11 +348,7 @@ export function SectionForms({ isDark = false, selectedSectionId }: SectionForms
       ) : null}
 
       {hasType("programmingLanguages") ? (
-<<<<<<< Updated upstream
       <SectionBlock title="Programming Languages" isDark={isDark} sectionType="programmingLanguages">
-=======
-      <SectionBlock title="Programming Languages" sectionType="programmingLanguages" isDark={isDark}>
->>>>>>> Stashed changes
         {data.programmingLanguages.map((lang, index) => (
           <div key={`${lang.name}-${index}`} className="grid grid-cols-[1fr_90px_36px] gap-2">
             <input
@@ -421,41 +391,25 @@ export function SectionForms({ isDark = false, selectedSectionId }: SectionForms
       ) : null}
 
       {hasType("frameworks") ? (
-<<<<<<< Updated upstream
       <SectionBlock title="Frameworks" isDark={isDark} sectionType="frameworks">
-=======
-      <SectionBlock title="Frameworks" sectionType="frameworks" isDark={isDark}>
->>>>>>> Stashed changes
         <input className={inputClass} value={data.frameworks.join(", ")} onChange={(event) => setData({ ...data, frameworks: parseCommaList(event.target.value) })} placeholder="frameworks comma separated" />
       </SectionBlock>
       ) : null}
 
       {hasType("toolsDevOps") ? (
-<<<<<<< Updated upstream
       <SectionBlock title="Tools and DevOps" isDark={isDark} sectionType="toolsDevOps">
-=======
-      <SectionBlock title="Tools and DevOps" sectionType="toolsDevOps" isDark={isDark}>
->>>>>>> Stashed changes
         <input className={inputClass} value={data.toolsDevOps.join(", ")} onChange={(event) => setData({ ...data, toolsDevOps: parseCommaList(event.target.value) })} placeholder="tools/devops comma separated" />
       </SectionBlock>
       ) : null}
 
       {hasType("databases") ? (
-<<<<<<< Updated upstream
       <SectionBlock title="Databases" isDark={isDark} sectionType="databases">
-=======
-      <SectionBlock title="Databases" sectionType="databases" isDark={isDark}>
->>>>>>> Stashed changes
         <input className={inputClass} value={data.databases.join(", ")} onChange={(event) => setData({ ...data, databases: parseCommaList(event.target.value) })} placeholder="databases comma separated" />
       </SectionBlock>
       ) : null}
 
       {hasType("experience") ? (
-<<<<<<< Updated upstream
       <SectionBlock title="Experience" isDark={isDark} sectionType="experience">
-=======
-      <SectionBlock title="Experience" sectionType="experience" isDark={isDark}>
->>>>>>> Stashed changes
         {data.experience.map((exp, index) => (
           <div key={`${exp.company}-${index}`} className="space-y-2 rounded border p-2">
             <input className={inputClass} value={exp.company} onChange={(event) => setData({ ...data, experience: updateArrayItem(data.experience, index, (item) => ({ ...item, company: event.target.value })) })} placeholder="company" />
@@ -487,11 +441,7 @@ export function SectionForms({ isDark = false, selectedSectionId }: SectionForms
       ) : null}
 
       {hasType("education") ? (
-<<<<<<< Updated upstream
       <SectionBlock title="Education" isDark={isDark} sectionType="education">
-=======
-      <SectionBlock title="Education" sectionType="education" isDark={isDark}>
->>>>>>> Stashed changes
         {data.education.map((edu, index) => (
           <div key={`${edu.institution}-${index}`} className="grid grid-cols-[1fr_1fr_90px_36px] gap-2">
             <input className={inputClass} value={edu.institution} onChange={(event) => setData({ ...data, education: updateArrayItem(data.education, index, (item) => ({ ...item, institution: event.target.value })) })} placeholder="institution" />
@@ -509,11 +459,7 @@ export function SectionForms({ isDark = false, selectedSectionId }: SectionForms
       ) : null}
 
       {hasType("projects") ? (
-<<<<<<< Updated upstream
       <SectionBlock title="Projects" isDark={isDark} sectionType="projects">
-=======
-      <SectionBlock title="Projects" sectionType="projects" isDark={isDark}>
->>>>>>> Stashed changes
         {data.projects.map((project, index) => (
           <div key={`${project.name}-${index}`} className="space-y-2 rounded border p-2">
             <input className={inputClass} value={project.name} onChange={(event) => setData({ ...data, projects: updateArrayItem(data.projects, index, (item) => ({ ...item, name: event.target.value })) })} placeholder="name" />
@@ -533,11 +479,7 @@ export function SectionForms({ isDark = false, selectedSectionId }: SectionForms
       ) : null}
 
       {hasType("skills") ? (
-<<<<<<< Updated upstream
       <SectionBlock title="Skills" isDark={isDark} sectionType="skills">
-=======
-      <SectionBlock title="Skills" sectionType="skills" isDark={isDark}>
->>>>>>> Stashed changes
         {(data.skills ?? []).map((skill, index) => (
           <div key={`${skill.category}-${index}`} className="grid grid-cols-[1fr_1fr_36px] gap-2">
             <input className={inputClass} value={skill.category} onChange={(event) => setData({ ...data, skills: updateArrayItem(data.skills ?? [], index, (item) => ({ ...item, category: event.target.value })) })} placeholder="category" />
@@ -554,11 +496,7 @@ export function SectionForms({ isDark = false, selectedSectionId }: SectionForms
       ) : null}
 
       {showMoreSections ? (
-<<<<<<< Updated upstream
       <SectionBlock title="More Sections" isDark={isDark} sectionType="openSource">
-=======
-      <SectionBlock title="More Sections" sectionType="openSource" isDark={isDark}>
->>>>>>> Stashed changes
         <input className={inputClass} value={JSON.stringify(data.openSource ?? [])} onChange={(event) => { try { setData({ ...data, openSource: JSON.parse(event.target.value) }); } catch {} }} placeholder="openSource JSON array" />
         <input className={inputClass} value={JSON.stringify(data.certifications ?? [])} onChange={(event) => { try { setData({ ...data, certifications: JSON.parse(event.target.value) }); } catch {} }} placeholder="certifications JSON array" />
         <input className={inputClass} value={JSON.stringify(data.languages ?? [])} onChange={(event) => { try { setData({ ...data, languages: JSON.parse(event.target.value) }); } catch {} }} placeholder="languages JSON array" />
